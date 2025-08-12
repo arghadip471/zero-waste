@@ -4,13 +4,12 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Leaf, Clock, MapPin, LogOut, CheckCircle } from "lucide-react"
+import { Leaf, Clock, MapPin, LogOut, CheckCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { NotificationSystem } from "@/components/notification-system"
 import { FoodSafetyTracker } from "@/components/food-safety-tracker"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2 } from "lucide-react" // for spinner
 
 interface FoodItem {
   id: string
@@ -22,83 +21,111 @@ interface FoodItem {
   location: string
   status: "available" | "claimed"
   foodSafetyScore: number
-  claimedAt?: string // Optional, as not all items may have this property
+  claimedAt?: string
 }
 
 export default function NGODashboard() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([])
-  const [claimedItems, setClaimedItems] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [claimingItemId, setClaimingItemId] = useState<string | null>(null)
 
-  // Fetch food items from the backend
+  // Analytics states
+  const [stats, setStats] = useState<any>(null)
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [errorStats, setErrorStats] = useState<string | null>(null)
+
   useEffect(() => {
-    const fetchFoodItems = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/food/food-items") // GET from backend
-        if (!res.ok) throw new Error("Failed to fetch food items")
-        const data: FoodItem[] = await res.json()
-        setFoodItems(data.sort((a, b) => new Date(b.claimedAt!).getTime() - new Date(a.claimedAt!).getTime()))
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchFoodItems()
+    fetchStats()
   }, [])
 
-  const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
+  async function fetchFoodItems() {
+    try {
+      const res = await fetch("http://localhost:5000/api/food/food-items")
+      if (!res.ok) throw new Error("Failed to fetch food items")
+      const data: FoodItem[] = await res.json()
+      setFoodItems(
+        data.sort(
+          (a, b) =>
+            new Date(b.claimedAt || "").getTime() -
+            new Date(a.claimedAt || "").getTime()
+        )
+      )
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-const handleClaimItem = async (itemId: string) => {
-  const previousItems = [...foodItems];
-  setClaimingItemId(itemId); // show spinner for this button
+  async function fetchStats() {
+    try {
+      setLoadingStats(true)
+      setErrorStats(null)
+      const res = await fetch("http://localhost:5000/api/admin/stats")
+      if (!res.ok) throw new Error("Failed to fetch stats")
+      const data = await res.json()
+      setStats(data)
+    } catch (err) {
+      console.error("Error fetching stats:", err)
+      setErrorStats("Unable to load statistics.")
+    } finally {
+      setLoadingStats(false)
+    }
+  }
 
-  const userName = localStorage.getItem("user") || "Anonymous";
+  const handleClaimItem = async (itemId: string) => {
+    const previousItems = [...foodItems]
+    setClaimingItemId(itemId)
+    const userName = localStorage.getItem("user") || "Anonymous"
 
-  // Optimistic UI update
-  setFoodItems((items) =>
-    items.map((item) =>
-      item.id === itemId
-        ? { ...item, status: "claimed", claimedBy: userName }
-        : item
-    )
-  );
-
-  try {
-    const res = await fetch(`http://localhost:5000/api/food/claim-food/${itemId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "claimed",
-        claimedBy: userName
-      }),
-    });
-
-    if (!res.ok) throw new Error("Failed to claim item");
-
-    const updatedItem = await res.json();
-
-    // Merge backend response into local state (in case backend adds more details)
+    // Optimistic UI update
     setFoodItems((items) =>
       items.map((item) =>
-        item.id === updatedItem.id ? updatedItem : item
+        item.id === itemId
+          ? { ...item, status: "claimed", claimedBy: userName }
+          : item
       )
-    );
+    )
 
-  } catch (error) {
-    console.error(error);
-    setFoodItems(previousItems); // rollback
-  } finally {
-    setClaimingItemId(null);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/food/claim-food/${itemId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "claimed",
+            claimedBy: userName,
+          }),
+        }
+      )
+
+      if (!res.ok) throw new Error("Failed to claim item")
+
+      const updatedItem = await res.json()
+      setFoodItems((items) =>
+        items.map((item) =>
+          item.id === updatedItem.id ? updatedItem : item
+        )
+      )
+    } catch (error) {
+      console.error(error)
+      setFoodItems(previousItems)
+    } finally {
+      setClaimingItemId(null)
+    }
   }
-};
-
 
   const availableItems = foodItems.filter((item) => item.status === "available")
   const myClaimedItems = foodItems.filter((item) => item.status === "claimed")
 
   if (loading) {
-    return <div className="p-6 text-center text-gray-500">Loading food items...</div>
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading food items...
+      </div>
+    )
   }
 
   return (
@@ -109,7 +136,9 @@ const handleClaimItem = async (itemId: string) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Leaf className="h-8 w-8 text-green-600" />
-              <span className="text-2xl font-bold text-green-800">ZeroWaste</span>
+              <span className="text-2xl font-bold text-green-800">
+                ZeroWaste
+              </span>
               <Badge variant="secondary" className="ml-2">
                 NGO/Student
               </Badge>
@@ -139,7 +168,9 @@ const handleClaimItem = async (itemId: string) => {
           <TabsContent value="available" className="space-y-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Available Food Items</h1>
-              <p className="text-gray-600 mt-2">Claim surplus food from canteens and help reduce waste</p>
+              <p className="text-gray-600 mt-2">
+                Claim surplus food from canteens and help reduce waste
+              </p>
             </div>
 
             {/* Stats */}
@@ -179,7 +210,9 @@ const handleClaimItem = async (itemId: string) => {
               {availableItems.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-8">
-                    <p className="text-gray-500">No food items available at the moment. Check back later!</p>
+                    <p className="text-gray-500">
+                      No food items available at the moment. Check back later!
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
@@ -211,25 +244,17 @@ const handleClaimItem = async (itemId: string) => {
                               </div>
                             </div>
                           </div>
-                          {item.status === "claimed" ? (
-                            <Badge className="bg-green-100 text-green-800 flex items-center gap-1 ml-4">
-                              <CheckCircle className="h-4 w-4" /> Claimed
-                            </Badge>
-                          ) : (
-                            <Button
-                              onClick={() => handleClaimItem(item.id)}
-                              className="bg-green-600 hover:bg-green-700 ml-4"
-                              disabled={claimingItemId === item.id}
-                            >
-                              {claimingItemId === item.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                "Claim Item"
-                              )}
-                            </Button>
-                          )}
-
-
+                          <Button
+                            onClick={() => handleClaimItem(item.id)}
+                            className="bg-green-600 hover:bg-green-700 ml-4"
+                            disabled={claimingItemId === item.id}
+                          >
+                            {claimingItemId === item.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Claim Item"
+                            )}
+                          </Button>
                         </div>
                         <FoodSafetyTracker score={item.foodSafetyScore} />
                       </CardContent>
@@ -269,7 +294,9 @@ const handleClaimItem = async (itemId: string) => {
                         </div>
                         <div className="text-right ml-4">
                           <CheckCircle className="h-6 w-6 text-green-600 mb-2" />
-                          <p className="text-sm text-green-600 font-medium">Claimed Successfully</p>
+                          <p className="text-sm text-green-600 font-medium">
+                            Claimed Successfully
+                          </p>
                         </div>
                       </div>
                       <FoodSafetyTracker score={item.foodSafetyScore} />
@@ -286,8 +313,18 @@ const handleClaimItem = async (itemId: string) => {
             )}
           </TabsContent>
 
+          {/* Analytics Tab */}
           <TabsContent value="analytics">
-            <AnalyticsDashboard stats={null}/>
+            {loadingStats ? (
+              <div className="flex items-center text-gray-500">
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Loading stats...
+              </div>
+            ) : errorStats ? (
+              <p className="text-red-500">{errorStats}</p>
+            ) : (
+              stats && <AnalyticsDashboard stats={stats} />
+            )}
           </TabsContent>
         </Tabs>
       </div>

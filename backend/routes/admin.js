@@ -98,7 +98,7 @@ router.get("/stats", async (req, res) => {
     // 📤 Send response
     res.json({
       foodSaved: { total: totalFood, thisMonth: thisMonthFood, trend: 0 },
-      peopleServed: { total: servingsTotal, thisMonth: 0, trend: 0 },
+      peopleServed: { total: servingsTotal },
       categories: topCategories.map(cat => ({
         category: cat.category,
         totalKg: cat.totalKg,

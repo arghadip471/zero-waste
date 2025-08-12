@@ -21,7 +21,6 @@ interface AnalyticsData {
   }
   peopleServed: {
     total: number
-    thisMonth: number
   }
   wasteReduction: {
     percentage: number
@@ -104,7 +103,7 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.peopleServed.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.peopleServed.thisMonth} this month</p>
+            
           </CardContent>
         </Card>
       </div>

@@ -31,11 +31,17 @@ interface FoodItem {
   category: string
 }
 
+
 export default function CanteenDashboard() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<any>(null)
+ 
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [errorStats, setErrorStats] = useState<string | null>(null)
+
 
   const API_BASE_URL = "http://localhost:5000"
 
@@ -54,7 +60,24 @@ export default function CanteenDashboard() {
       }
     }
     fetchFoodItems()
+    fetchStats()
   }, [])
+
+  async function fetchStats() {
+    try {
+      setLoadingStats(true)
+      setErrorStats(null)
+      const res = await fetch("http://localhost:5000/api/admin/stats")
+      if (!res.ok) throw new Error("Failed to fetch stats")
+      const data = await res.json()
+      setStats(data)
+    } catch (err) {
+      console.error("Error fetching stats:", err)
+      setErrorStats("Unable to load statistics.")
+    } finally {
+      setLoadingStats(false)
+    }
+  }
 
   const handleAddItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -313,7 +336,9 @@ export default function CanteenDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AnalyticsDashboard stats={null} />
+            <AnalyticsDashboard stats={
+              stats
+            } />
           </TabsContent>
 
           <TabsContent value="events">
