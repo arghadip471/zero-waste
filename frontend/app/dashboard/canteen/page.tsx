@@ -49,7 +49,7 @@ export default function CanteenDashboard() {
     async function fetchFoodItems() {
       try {
         setLoading(true)
-        const res = await fetch(`${API_BASE_URL}/api/food/food-items`)
+        const res = await fetch(`${API_BASE_URL}/api/food/food-items?userId=${localStorage.getItem("user") || null}`)
         if (!res.ok) throw new Error(`Error: ${res.statusText}`)
         const data = await res.json()
         setFoodItems(data)

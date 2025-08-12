@@ -53,32 +53,38 @@ router.post("/add-food", async (req, res) => {
 
 // Fetch all food items
 router.get("/food-items", async (req, res) => {
+  const {userId} = req.query;
   try {
+    const matchStage = userId
+      ? { $match: { createdBy: new mongoose.Types.ObjectId(userId) } }
+      : { $match: {} };
+
     const items = await FoodItem.aggregate([
-  {
-    $lookup: {
-      from: "users",
-      localField: "createdBy",
-      foreignField: "_id",
-      as: "createdBy"
-    }
-  },
-  {
-    $unwind: {
-      path: "$createdBy",
-      preserveNullAndEmptyArrays: true
-    }
-  },
-  {
-    $sort: { createdAt: -1 }
-  },
-  {
-    $project: {
-      "createdBy.password": 0, // hide sensitive fields
-      "createdBy.__v": 0
-    }
-  }
-]);
+      matchStage,
+      {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "createdBy"
+      }
+      },
+      {
+      $unwind: {
+        path: "$createdBy",
+        preserveNullAndEmptyArrays: true
+      }
+      },
+      {
+      $sort: { createdAt: -1 }
+      },
+      {
+      $project: {
+        "createdBy.password": 0,
+        "createdBy.__v": 0
+      }
+      }
+    ]);
 
     res.json(items.map(formatFoodItem));
   } catch (error) {
