@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, Leaf, Droplets, Users, Utensils, Target, Award } from "lucide-react"
+import { TrendingUp, Leaf, Droplets, Users, Utensils, Target, Award, Loader2 } from "lucide-react"
 
 interface AnalyticsData {
   foodSaved: {
@@ -11,13 +11,13 @@ interface AnalyticsData {
     thisMonth: number
     trend: number
   }
-  carbonFootprint: {
-    saved: number
-    equivalent: string
+  carbonSaved: {
+    totalKg: number
+    carsOffStreetTotal: number
   }
-  waterFootprint: {
-    saved: number
-    equivalent: string
+  waterSaved: {
+    totalLiters: number
+    totalBuckets: string
   }
   peopleServed: {
     total: number
@@ -27,43 +27,29 @@ interface AnalyticsData {
     percentage: number
     target: number
   }
-  topCategories: Array<{
-    name: string
-    amount: number
+  categories: Array<{
+    category: string
     percentage: number
+    totalKg: number
   }>
 }
 
 export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
-  const data: AnalyticsData = {
-    foodSaved: {
-      total: 2847,
-      thisMonth: 342,
-      trend: 23,
-    },
-    carbonFootprint: {
-      saved: 1250,
-      equivalent: "2.5 cars off road for a month",
-    },
-    waterFootprint: {
-      saved: 15600,
-      equivalent: "312 bathtubs of water",
-    },
-    peopleServed: {
-      total: 1890,
-      thisMonth: 234,
-    },
-    wasteReduction: {
-      percentage: 78,
-      target: 85,
-    },
-    topCategories: [
-      { name: "Cooked Meals", amount: 1245, percentage: 44 },
-      { name: "Fresh Produce", amount: 892, percentage: 31 },
-      { name: "Baked Items", amount: 456, percentage: 16 },
-      { name: "Beverages", amount: 254, percentage: 9 },
-    ],
+
+  if(!stats) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Analytics...</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center">
+          <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
+        </CardContent>
+      </Card>
+    )
   }
+
+  console.log("Analytics Data:", stats)
 
   return (
     <div className="space-y-6">
@@ -75,14 +61,14 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
             <Utensils className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.foodSaved.total.toLocaleString()} kg</div>
+            <div className="text-2xl font-bold">{stats.foodSaved.total.toLocaleString()} kg</div>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                +{data.foodSaved.trend}%
+                +{stats.foodSaved.trend}%
               </Badge>
               <p className="text-xs text-muted-foreground">vs last month</p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{data.foodSaved.thisMonth} kg this month</p>
+            <p className="text-xs text-muted-foreground mt-1">{stats.foodSaved.thisMonth} kg this month</p>
           </CardContent>
         </Card>
 
@@ -93,8 +79,8 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.carbonFootprint.saved} kg</div>
-            <p className="text-xs text-muted-foreground mt-1">Equivalent to {data.carbonFootprint.equivalent}</p>
+            <div className="text-2xl font-bold">{stats.carbonSaved.totalKg} kg</div>
+            <p className="text-xs text-muted-foreground mt-1">Equivalent to {stats.carbonSaved.carsOffStreetTotal} cars of the street</p>
           </CardContent>
         </Card>
 
@@ -105,8 +91,8 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
             <Droplets className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.waterFootprint.saved.toLocaleString()} L</div>
-            <p className="text-xs text-muted-foreground mt-1">{data.waterFootprint.equivalent}</p>
+            <div className="text-2xl font-bold">{stats.waterSaved.totalLiters.toLocaleString()} L</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.waterSaved.totalBuckets} buckets of water</p>
           </CardContent>
         </Card>
 
@@ -117,8 +103,8 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.peopleServed.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">{data.peopleServed.thisMonth} this month</p>
+            <div className="text-2xl font-bold">{stats.peopleServed.total.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.peopleServed.thisMonth} this month</p>
           </CardContent>
         </Card>
       </div>
@@ -135,14 +121,14 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Current: {data.wasteReduction.percentage}%</span>
-              <span className="text-sm text-muted-foreground">Target: {data.wasteReduction.target}%</span>
+              <span className="text-sm font-medium">Current: {stats.wasteReduction.percentage}%</span>
+              <span className="text-sm text-muted-foreground">Target: {stats.wasteReduction.target}%</span>
             </div>
-            <Progress value={data.wasteReduction.percentage} className="h-3" />
+            <Progress value={stats.wasteReduction.percentage} className="h-3" />
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-green-600" />
               <span className="text-sm text-green-600">
-                {data.wasteReduction.target - data.wasteReduction.percentage}% to reach target
+                {stats.wasteReduction.target - stats.wasteReduction.percentage}% to reach target
               </span>
             </div>
           </CardContent>
@@ -158,12 +144,12 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
             <CardDescription>Most redistributed food types</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {data.topCategories.map((category, index) => (
+            {stats.categories.map((category, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{category.name}</span>
+                  <span className="text-sm font-medium">{category.category}</span>
                   <span className="text-sm text-muted-foreground">
-                    {category.amount} kg ({category.percentage}%)
+                    {category.totalKg} kg ({category.percentage}%)
                   </span>
                 </div>
                 <Progress value={category.percentage} className="h-2" />

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import foodRoutes from "./routes/food.js";
+import adminRoutes from "./routes/admin.js";
 import dotenv from "dotenv" 
 
 dotenv.config();
@@ -17,6 +18,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/zero_waste", {
   .catch(err => console.error(err));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/food", foodRoutes)
+app.use("/api/food", foodRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(5000, () => console.log("🚀 Server running on http://localhost:5000"));

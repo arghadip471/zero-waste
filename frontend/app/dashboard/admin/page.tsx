@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Leaf, LogOut } from "lucide-react"
+import { Leaf, LogOut, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 import { NotificationSystem } from "@/components/notification-system"
@@ -13,75 +13,79 @@ import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 import { EventIntegration } from "@/components/event-integration"
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    foodSaved: { total: 0, thisMonth: 0, trend: 0 },
-    carbonFootprint: { saved: 0, equivalent: "" },
-    waterFootprint: { saved: 0, equivalent: "" },
-    peopleServed: { total: 0, thisMonth: 0, trend: 0 },
-    donations: { total: 0, thisMonth: 0, trend: 0 },
-    events: { total: 0, thisMonth: 0, trend: 0 },
-    wasteReduction: { percentage: 0, target: 0 }, // Adjusted to match AnalyticsData type
-    topCategories: [], // Kept as array, adjust if needed by AnalyticsData type
-  })
+  const [stats, setStats] = useState<any>(null)
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([])
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [loadingActivity, setLoadingActivity] = useState(true)
+  const [errorActivity, setErrorActivity] = useState<string | null>(null)
+  const [errorStats, setErrorStats] = useState<string | null>(null)
+
   interface Activity {
     id: string
+    name: string
     action: string
     user: string
     time: string
-    type: string
+    type: "canteen" | "claim" | "student" | "listing" | "other"
   }
-  const [recentActivity, setRecentActivity] = useState<Activity[]>([])
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch food items from backend
-        const res = await fetch("http://localhost:5000/api/food/food-items") // Adjust API base URL if needed
-        const data = await res.json()
-
-        // Map the food items into "recent activity" format
-        interface FoodItem {
-          id: string
-          status: string
-          createdBy: { name: string }
-          claimedBy?: string
-          pickupLocation: string
-          createdAt: string
-        }
-
-        interface Activity {
-          id: string
-          action: string
-          user: string
-          time: string
-          type: string
-        }
-
-                console.log("Fetched food items:", data)
-
-
-        const formatted: Activity[] = (data as FoodItem[]).map((item: FoodItem): Activity => ({
-  id: item.id,
-  action: item.status === "claimed" ? "Food item claimed" : "Food item listed",
-  user:
-    item.status === "claimed"
-      ? item.claimedBy || "anonymous"
-      : item.createdBy.name || "anonymous",
-  time: timeAgo(item.createdAt),
-  type: item.status === "claimed" ? "claim" : "listing",
-}));
-
-
-        setRecentActivity(formatted)
-      } catch (error) {
-        console.error("Error fetching recent activity:", error)
-      }
-    }
-
-    fetchData()
+    fetchStats()
+    fetchActivity()
   }, [])
 
-  // Helper: convert timestamp to "x hours ago"
+  async function fetchStats() {
+    try {
+      setLoadingStats(true)
+      setErrorStats(null)
+      const res = await fetch("http://localhost:5000/api/admin/stats")
+      if (!res.ok) throw new Error("Failed to fetch stats")
+      const data = await res.json()
+      setStats(data)
+    } catch (err) {
+      console.error("Error fetching stats:", err)
+      setErrorStats("Unable to load statistics.")
+    } finally {
+      setLoadingStats(false)
+    }
+  }
+
+  async function fetchActivity() {
+    try {
+      setLoadingActivity(true)
+      setErrorActivity(null)
+      const res = await fetch("http://localhost:5000/api/food/food-items")
+      if (!res.ok) throw new Error("Failed to fetch food items")
+      const data = await res.json()
+
+      const formatted: Activity[] = data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        action: item.status === "claimed" ? "Food item claimed" : "Food item listed",
+        user:
+          item.status === "claimed"
+            ? item.claimedBy || "anonymous"
+            : item.createdBy?.name || "anonymous",
+        time: timeAgo(item.createdAt),
+        type:
+          item.type === "canteen"
+            ? "canteen"
+            : item.status === "claimed"
+            ? "claim"
+            : item.type === "student"
+            ? "student"
+            : "listing",
+      }))
+
+      setRecentActivity(formatted)
+    } catch (err) {
+      console.error("Error fetching recent activity:", err)
+      setErrorActivity("Unable to load recent activity.")
+    } finally {
+      setLoadingActivity(false)
+    }
+  }
+
   function timeAgo(dateString: string) {
     const now = new Date()
     const date = new Date(dateString)
@@ -100,6 +104,21 @@ export default function AdminDashboard() {
       }
     }
     return "just now"
+  }
+
+  function getTypeBadge(type: Activity["type"]) {
+    switch (type) {
+      case "canteen":
+        return <Badge className="bg-blue-500">Canteen</Badge>
+      case "claim":
+        return <Badge className="bg-green-500">Claimed</Badge>
+      case "student":
+        return <Badge className="bg-purple-500">Student</Badge>
+      case "listing":
+        return <Badge className="bg-orange-500">Listed</Badge>
+      default:
+        return <Badge className="bg-gray-500">Other</Badge>
+    }
   }
 
   return (
@@ -131,12 +150,23 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Monitor platform activity and manage the ZeroWaste community</p>
+          <p className="text-gray-600 mt-2">
+            Monitor platform activity and manage the ZeroWaste community
+          </p>
         </div>
 
-        <AnalyticsDashboard stats={stats} />
+        {loadingStats ? (
+          <div className="flex items-center text-gray-500">
+            <Loader2 className="animate-spin h-5 w-5 mr-2" />
+            Loading stats...
+          </div>
+        ) : errorStats ? (
+          <p className="text-red-500">{errorStats}</p>
+        ) : (
+          stats && <AnalyticsDashboard stats={stats} />
+        )}
 
-        <Tabs defaultValue="activity" className="space-y-6">
+        <Tabs defaultValue="activity" className="space-y-6 mt-6">
           <TabsList>
             <TabsTrigger value="activity">Recent Activity</TabsTrigger>
             <TabsTrigger value="events">Event Management</TabsTrigger>
@@ -149,36 +179,42 @@ export default function AdminDashboard() {
                 <CardDescription>Latest food item actions from the platform</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No recent activity found.</p>
-                  ) : (
-                    recentActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                {loadingActivity ? (
+                  <div className="flex items-center text-gray-500">
+                    <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                    Loading recent activity...
+                  </div>
+                ) : errorActivity ? (
+                  <p className="text-red-500">{errorActivity}</p>
+                ) : recentActivity.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No recent activity found.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivity.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-center justify-between p-4 border rounded-lg bg-white hover:shadow-sm transition"
+                      >
                         <div className="flex items-center gap-3">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              activity.type === "canteen"
-                                ? "bg-blue-500"
-                                : activity.type === "claim"
-                                  ? "bg-green-500"
-                                  : activity.type === "student"
-                                    ? "bg-purple-500"
-                                    : activity.type === "listing"
-                                      ? "bg-orange-500"
-                                      : "bg-gray-500"
-                            }`}
-                          />
+                          {getTypeBadge(activity.type)}
                           <div>
-                            <p className="font-medium">{activity.action}</p>
+                            <p className="font-medium">
+                              {activity.action} —{" "}
+                              <span className="text-green-700">{activity.name}</span>
+                            </p>
                             <p className="text-sm text-gray-500">{activity.user}</p>
                           </div>
                         </div>
-                        <span className="text-sm text-gray-500">{activity.time}</span>
+                        <span
+                          className="text-sm text-gray-500"
+                          title={new Date().toLocaleString()}
+                        >
+                          {activity.time}
+                        </span>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
