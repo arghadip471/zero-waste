@@ -97,7 +97,7 @@ router.get("/food-items", async (req, res) => {
 router.patch("/claim-food/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { claimedBy } = req.body;
+    const { userId } = req.body;
 
     const foodItem = await FoodItem.findById(id);
     if (!foodItem) return res.status(404).json({ message: "Food item not found" });
@@ -106,7 +106,7 @@ router.patch("/claim-food/:id", async (req, res) => {
       return res.status(400).json({ message: "Food item already claimed" });
     }
 
-    const user = await User.findById(claimedBy);
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     foodItem.status = "claimed";

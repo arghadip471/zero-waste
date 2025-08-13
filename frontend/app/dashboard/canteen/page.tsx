@@ -12,7 +12,7 @@ import Link from "next/link"
 import { NotificationSystem } from "@/components/notification-system"
 import { FoodSafetyTracker } from "@/components/food-safety-tracker"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
-import { EventIntegration } from "@/components/event-integration"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -41,6 +41,10 @@ export default function CanteenDashboard() {
  
   const [loadingStats, setLoadingStats] = useState(true)
   const [errorStats, setErrorStats] = useState<string | null>(null)
+
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
+  const [eventsError, setEventsError] = useState<string | null>(null)
 
 
   const API_BASE_URL = "http://localhost:5000"
@@ -78,6 +82,27 @@ export default function CanteenDashboard() {
       setLoadingStats(false)
     }
   }
+
+   // Fetch upcoming events
+  useEffect(() => {
+    async function fetchUpcomingEvents() {
+      try {
+        setLoadingEvents(true)
+        const res = await fetch(`${API_BASE_URL}/api/events/event_fetch`)
+        if (!res.ok) throw new Error(`Error: ${res.statusText}`)
+        const data = await res.json()
+        const upcoming = data.filter((event: any) => event.status === "Upcoming")
+        setUpcomingEvents(upcoming)
+      } catch (err: any) {
+        setEventsError(err.message || "Failed to fetch events")
+      } finally {
+        setLoadingEvents(false)
+      }
+    }
+    fetchUpcomingEvents()
+  }, [])
+
+
 
   const handleAddItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -341,8 +366,35 @@ export default function CanteenDashboard() {
             } />
           </TabsContent>
 
+          {/* Events */}
           <TabsContent value="events">
-            <EventIntegration />
+            <h2 className="text-xl font-semibold mb-4">Upcoming Events</h2>
+            {loadingEvents ? (
+              <p>Loading upcoming events...</p>
+            ) : eventsError ? (
+              <p className="text-red-600">Error: {eventsError}</p>
+            ) : upcomingEvents.length === 0 ? (
+              <Card><CardContent className="text-center py-8">No upcoming events from admin.</CardContent></Card>
+            ) : (
+              <div className="space-y-4">
+                {upcomingEvents.map((event) => (
+                  <Card key={event._id} className="border border-green-300">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                      <div>
+                        <CardTitle>{event.name}</CardTitle>
+                        <CardDescription>{new Date(event.date).toLocaleString()} — {event.location}</CardDescription>
+                      </div>
+                      <Badge className="bg-yellow-500 text-white">Upcoming</Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">
+                        Duration: {event.durationHours}h {event.durationMinutes}m {event.durationSeconds}s
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

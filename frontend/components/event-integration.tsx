@@ -1,216 +1,316 @@
-"use client"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, MapPin, Users, Plus, AlertCircle } from "lucide-react"
+"use client";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Event {
-  id: string
-  name: string
-  type: string
-  date: Date
-  location: string
-  expectedAttendees: number
-  status: "upcoming" | "ongoing" | "completed"
-  foodLogged: boolean
-  estimatedSurplus?: string
+  _id: string;
+  name: string;
+  date: string;
+  location: string;
+  durationHours?: number;
+  durationMinutes?: number;
+  durationSeconds?: number;
+  status: string;
+  foodLogged?: boolean;
+  foodDetails?: {
+    foodType: string;
+    quantity: string;
+    description: string;
+    safeForHours: number;
+    pickupLocation: string;
+    loggedAt: string;
+  };
 }
 
+const EventCard = ({ event, onFoodLogged }: { event: Event; onFoodLogged: () => void }) => {
+  const [showFoodForm, setShowFoodForm] = useState(false);
+
+  const [foodType, setFoodType] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [description, setDescription] = useState("");
+  const [safeForHours, setSafeForHours] = useState(0);
+  const [pickupLocation, setPickupLocation] = useState("");
+
+  let statusColor = "#6b7280";
+  if (event.status === "Upcoming") statusColor = "#3b82f6";
+  if (event.status === "Ongoing") statusColor = "#22c55e";
+  if (event.status === "Completed") statusColor = "#ef4444";
+
+  const hrs = event.durationHours || 0;
+  const mins = event.durationMinutes || 0;
+  const secs = event.durationSeconds || 0;
+
+  const handleLogFood = async () => {
+    await fetch(`http://localhost:5000/api/events/event_log_food/${event._id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        foodType,
+        quantity,
+        description,
+        safeForHours,
+        pickupLocation
+      })
+    });
+    setShowFoodForm(false);
+    setFoodType("");
+    setQuantity("");
+    setDescription("");
+    setSafeForHours(0);
+    setPickupLocation("");
+    onFoodLogged();
+  };
+
+  return (
+    <div className="event-item">
+      <div className="event-header">
+        <h4 className="event-title">{event.name}</h4>
+        <span className="status-badge" style={{ backgroundColor: statusColor }}>
+          {event.status}
+        </span>
+      </div>
+      <p className="event-date">
+        {new Date(event.date).toLocaleString()} — {hrs}h {mins}m {secs}s
+      </p>
+      <p className="event-location">{event.location}</p>
+
+      {event.status === "Completed" && !event.foodLogged && (
+        <div style={{ marginTop: "0.75rem" }}>
+          {!showFoodForm ? (
+            <Button size="sm" onClick={() => setShowFoodForm(true)}>
+              Log Food
+            </Button>
+          ) : (
+            <div style={{ border: "1px solid #e5e7eb", padding: "1rem", borderRadius: "0.5rem" }}>
+              <h4 className="mb-2 font-semibold">Log Surplus Food from {event.name}</h4>
+
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                <Input
+                  placeholder="e.g., Lunch boxes, Snacks"
+                  value={foodType}
+                  onChange={(e) => setFoodType(e.target.value)}
+                />
+                <Input
+                  placeholder="e.g., 25 portions"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+                <textarea
+                  placeholder="Brief description of the food items"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  style={{ padding: "0.5rem", border: "1px solid #d1d5db", borderRadius: "0.25rem" }}
+                />
+                <Input
+                  placeholder="Safe for (hours)"
+                  type="number"
+                  value={safeForHours}
+                  onChange={(e) => setSafeForHours(Number(e.target.value))}
+                />
+                <Input
+                  placeholder="Event venue or storage location"
+                  value={pickupLocation}
+                  onChange={(e) => setPickupLocation(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+                <Button size="sm" onClick={handleLogFood}>
+                  Log Food Items
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => setShowFoodForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {event.foodLogged && event.foodDetails && (
+        <div style={{ marginTop: "0.5rem", color: "#16a34a" }}>
+          🍽 Food Logged: {event.foodDetails.quantity} of {event.foodDetails.foodType}  
+          <br />
+          📍 {event.foodDetails.pickupLocation} — Safe for {event.foodDetails.safeForHours} hours
+        </div>
+      )}
+
+      <style jsx>{`
+        .event-item {
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.5rem;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .event-header {
+          display: flex;
+          justify-content: space-between;
+        }
+        .status-badge {
+          color: white;
+          font-size: 0.75rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+        }
+      `}</style>
+    </div>
+  );
+};
+
 export function EventIntegration() {
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1",
-      name: "Tech Conference 2024",
-      type: "Conference",
-      date: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      location: "Main Auditorium",
-      expectedAttendees: 200,
-      status: "completed",
-      foodLogged: false,
-      estimatedSurplus: "30-40 portions",
-    },
-    {
-      id: "2",
-      name: "Cultural Fest",
-      type: "Festival",
-      date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-      location: "Campus Grounds",
-      expectedAttendees: 500,
-      status: "upcoming",
-      foodLogged: false,
-    },
-    {
-      id: "3",
-      name: "Workshop on AI",
-      type: "Workshop",
-      date: new Date(), // Now
-      location: "Computer Lab",
-      expectedAttendees: 50,
-      status: "ongoing",
-      foodLogged: false,
-    },
-  ])
+  const [events, setEvents] = useState<Event[]>([]);
+  const [newEventName, setNewEventName] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventLocation, setNewEventLocation] = useState("");
+  const [durationHours, setDurationHours] = useState(0);
+  const [durationMinutes, setDurationMinutes] = useState(0);
+  const [durationSeconds, setDurationSeconds] = useState(0);
 
-  const [showFoodForm, setShowFoodForm] = useState<string | null>(null)
-
-  const handleLogFood = (eventId: string, foodData: any) => {
-    setEvents(events.map((event) => (event.id === eventId ? { ...event, foodLogged: true } : event)))
-    setShowFoodForm(null)
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "upcoming":
-        return "bg-blue-100 text-blue-800"
-      case "ongoing":
-        return "bg-green-100 text-green-800"
-      case "completed":
-        return "bg-gray-100 text-gray-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  async function fetchEvents() {
+    try {
+      const res = await fetch("http://localhost:5000/api/events/event_fetch");
+      const data: Event[] = await res.json();
+      setEvents(data);
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
     }
   }
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+  useEffect(() => {
+    fetchEvents();
+    const interval = setInterval(fetchEvents, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await fetch("http://localhost:5000/api/events/event_add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newEventName,
+          date: newEventDate,
+          location: newEventLocation,
+          durationHours,
+          durationMinutes,
+          durationSeconds
+        }),
+      });
+      setNewEventName("");
+      setNewEventDate("");
+      setNewEventLocation("");
+      setDurationHours(0);
+      setDurationMinutes(0);
+      setDurationSeconds(0);
+      fetchEvents();
+    } catch (error) {
+      console.error("Failed to create event:", error);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Campus Events Integration
-          </CardTitle>
-          <CardDescription>Track events and get reminders to log surplus food</CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="event-grid">
+      <div className="event-list">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Campus Events</CardTitle>
+            <CardDescription>A list of upcoming events on campus.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {events.length > 0 ? (
+              events.map((event) => (
+                <EventCard key={event._id} event={event} onFoodLogged={fetchEvents} />
+              ))
+            ) : (
+              <p className="empty-text">No upcoming events.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-      <div className="space-y-4">
-        {events.map((event) => (
-          <Card
-            key={event.id}
-            className={`${!event.foodLogged && event.status === "completed" ? "border-orange-200 bg-orange-50" : ""}`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold">{event.name}</h3>
-                    <Badge className={getStatusColor(event.status)}>
-                      {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                    </Badge>
-                    {!event.foodLogged && event.status === "completed" && (
-                      <Badge variant="outline" className="border-orange-500 text-orange-700">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Food Logging Pending
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDate(event.date)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{event.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>{event.expectedAttendees} expected attendees</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Type:</span>
-                      <span>{event.type}</span>
-                    </div>
-                  </div>
-
-                  {event.estimatedSurplus && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
-                      <div className="flex items-center gap-2 text-yellow-800">
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="font-medium">Estimated Surplus: {event.estimatedSurplus}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {event.foodLogged && (
-                    <div className="bg-green-50 border border-green-200 rounded p-3">
-                      <div className="flex items-center gap-2 text-green-800">
-                        <span className="font-medium">✅ Food surplus logged successfully</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="ml-4">
-                  {!event.foodLogged && event.status === "completed" && (
-                    <Button onClick={() => setShowFoodForm(event.id)} className="bg-orange-600 hover:bg-orange-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Log Food
-                    </Button>
-                  )}
+      <div className="event-form">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Event</CardTitle>
+            <CardDescription>Create a new event to track.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateEvent} className="space-y-4">
+              <div>
+                <Label htmlFor="eventName">Event Name</Label>
+                <Input
+                  id="eventName"
+                  value={newEventName}
+                  onChange={(e) => setNewEventName(e.target.value)}
+                  placeholder="e.g., Tech Conference"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="eventDate">Date & Time</Label>
+                <Input
+                  id="eventDate"
+                  type="datetime-local"
+                  value={newEventDate}
+                  onChange={(e) => setNewEventDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Duration</Label>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(Number(e.target.value))}
+                    placeholder="Hours"
+                  />
+                  <Input
+                    type="number"
+                    min="0"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    placeholder="Minutes"
+                  />
+                  <Input
+                    type="number"
+                    min="0"
+                    value={durationSeconds}
+                    onChange={(e) => setDurationSeconds(Number(e.target.value))}
+                    placeholder="Seconds"
+                  />
                 </div>
               </div>
-
-              {/* Food Logging Form */}
-              {showFoodForm === event.id && (
-                <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-                  <h4 className="font-medium mb-4">Log Surplus Food from {event.name}</h4>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      handleLogFood(event.id, {}) // In real app, would pass form data
-                    }}
-                    className="space-y-4"
-                  >
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="foodType">Food Type</Label>
-                        <Input id="foodType" placeholder="e.g., Lunch boxes, Snacks" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input id="quantity" placeholder="e.g., 25 portions" required />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="Brief description of the food items" />
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="safetyHours">Safe for (hours)</Label>
-                        <Input id="safetyHours" type="number" placeholder="4" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pickupLocation">Pickup Location</Label>
-                        <Input id="pickupLocation" placeholder="Event venue or storage location" required />
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                        Log Food Items
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => setShowFoodForm(null)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              <div>
+                <Label htmlFor="eventLocation">Location</Label>
+                <Input
+                  id="eventLocation"
+                  value={newEventLocation}
+                  onChange={(e) => setNewEventLocation(e.target.value)}
+                  placeholder="e.g., Main Auditorium"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Create Event
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  )
+  );
 }
