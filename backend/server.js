@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.js";
 import foodRoutes from "./routes/food.js";
 import adminRoutes from "./routes/admin.js";
 import eventRoutes from "./routes/events.js";
+import userRouthes from "./routes/user.js";
 import dotenv from "dotenv" 
 
 dotenv.config();
@@ -22,5 +23,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/users", userRouthes);
 
 app.listen(5000, () => console.log("🚀 Server running on http://localhost:5000"));

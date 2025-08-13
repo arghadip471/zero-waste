@@ -7,12 +7,16 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Leaf, LogOut, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { User } from "lucide-react"
+
 
 import { NotificationSystem } from "@/components/notification-system"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 import { EventIntegration } from "@/components/event-integration"
 
 export default function AdminDashboard() {
+  const [username, setUsername] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null)
   const [recentActivity, setRecentActivity] = useState<Activity[]>([])
   const [loadingStats, setLoadingStats] = useState(true)
@@ -33,6 +37,24 @@ export default function AdminDashboard() {
     fetchStats()
     fetchActivity()
   }, [])
+
+  useEffect(() => {
+      const storedName = localStorage.getItem("username")
+      if (storedName) setUsername(storedName)
+  
+      const userId = localStorage.getItem("user")
+      if (userId) {
+        fetch(`http://localhost:5000/api/users/${userId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data?.name) {
+              setUsername(data.name)
+              localStorage.setItem("username", data.name)
+            }
+          })
+          .catch(err => console.error("Error fetching username:", err))
+      }
+    }, [])
 
   async function fetchStats() {
     try {
@@ -136,12 +158,28 @@ export default function AdminDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <NotificationSystem />
-              <Link href="/auth">
-                <Button variant="outline" size="sm">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </Link>
+
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {username || "User"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    Signed in as {username || "User"}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <Link href="/auth">
+                    <DropdownMenuItem className="text-red-600 cursor-pointer">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

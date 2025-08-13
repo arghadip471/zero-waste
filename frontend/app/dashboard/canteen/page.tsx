@@ -15,6 +15,8 @@ import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { User } from "lucide-react"
 
 interface FoodItem {
   id: string
@@ -33,6 +35,7 @@ interface FoodItem {
 
 
 export default function CanteenDashboard() {
+  const [username, setUsername] = useState<string | null>(null);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -65,6 +68,24 @@ export default function CanteenDashboard() {
     }
     fetchFoodItems()
     fetchStats()
+  }, [])
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("username")
+    if (storedName) setUsername(storedName)
+
+    const userId = localStorage.getItem("user")
+    if (userId) {
+      fetch(`http://localhost:5000/api/users/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.name) {
+            setUsername(data.name)
+            localStorage.setItem("username", data.name)
+          }
+        })
+        .catch(err => console.error("Error fetching username:", err))
+    }
   }, [])
 
   async function fetchStats() {
@@ -152,11 +173,26 @@ export default function CanteenDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <NotificationSystem />
-              <Link href="/auth">
-                <Button variant="outline" size="sm">
-                  <LogOut className="h-4 w-4 mr-2" /> Sign Out
-                </Button>
-              </Link>
+              
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 border rounded-md px-2 py-1 hover:bg-gray-100">
+                    <User className="h-5 w-5" />
+                    <span>{username || "User"}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-3 py-2 text-sm text-gray-600 border-b">
+                    Signed in as <span className="font-medium">{username || "User"}</span>
+                  </div>
+                  <DropdownMenuItem asChild>
+                    <Link href="/auth" className="flex items-center gap-2 text-red-600">
+                      <LogOut className="h-4 w-4" /> Sign Out
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

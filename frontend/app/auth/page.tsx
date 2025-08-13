@@ -41,6 +41,7 @@ export default function AuthPage() {
     // Save token
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", data.user.id);
+    localStorage.setItem("username", data.user.name);
 
     // Redirect based on role from backend
     switch (data.user.role) {
@@ -85,7 +86,10 @@ export default function AuthPage() {
 
       if (!res.ok) throw new Error(data.message || "Sign up failed")
 
-      
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", data.user.id);
+      localStorage.setItem("username", data.user.name);
+
       // Redirect based on role
       if (role === "admin") router.push("/dashboard/admin")
       else if (role === "canteen") router.push("/dashboard/canteen")

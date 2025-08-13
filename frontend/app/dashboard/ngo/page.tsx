@@ -4,12 +4,20 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, Clock, MapPin, LogOut, CheckCircle, Loader2 } from "lucide-react";
+import { Leaf, Clock, MapPin, LogOut, CheckCircle, Loader2, User } from "lucide-react";
 import Link from "next/link";
 import { NotificationSystem } from "@/components/notification-system";
 import { FoodSafetyTracker } from "@/components/food-safety-tracker";
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface FoodItem {
   id: string;
@@ -42,6 +50,7 @@ interface CompletedEvent {
 }
 
 export default function NGODashboard() {
+  const [username, setUsername] = useState<string | null>(null);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [completedEvents, setCompletedEvents] = useState<CompletedEvent[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -49,6 +58,36 @@ export default function NGODashboard() {
   const [errorStats, setErrorStats] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [claimingItemId, setClaimingItemId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const storedName = localStorage.getItem("username");
+    if (storedName) setUsername(storedName);
+  }, []);
+
+  useEffect(() => {
+  const storedName = localStorage.getItem("username");
+  if (storedName) setUsername(storedName);
+
+  const userId = localStorage.getItem("user"); // ✅ match login key
+  if (userId) {
+    fetch(`http://localhost:5000/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.name) {
+          setUsername(data.name);
+          localStorage.setItem("username", data.name);
+        }
+      })
+      .catch(err => console.error("Error fetching username:", err));
+  }
+}, []);
+
+
+
+  const handleSignOut = () => {
+    localStorage.clear();
+    window.location.href = "/auth";
+  };
 
   // Fetch food items
   const fetchFoodItems = async (silent = false) => {
@@ -109,7 +148,6 @@ export default function NGODashboard() {
     };
     init();
 
-    // Refresh completed events periodically (every 60s)
     const interval = setInterval(() => fetchCompletedEvents(true), 60000);
     return () => clearInterval(interval);
   }, []);
@@ -118,8 +156,6 @@ export default function NGODashboard() {
   const handleClaimItem = async (itemId: string) => {
     const previousItems = [...foodItems];
     setClaimingItemId(itemId);
-
-    // Optimistic UI update
     setFoodItems((items) =>
       items.map((item) => (item.id === itemId ? { ...item, status: "claimed" } : item))
     );
@@ -133,13 +169,13 @@ export default function NGODashboard() {
       if (!res.ok) throw new Error("Failed to claim item");
     } catch (err) {
       console.error("Error claiming available item:", err);
-      setFoodItems(previousItems); // rollback
+      setFoodItems(previousItems);
     } finally {
       setClaimingItemId(null);
     }
   };
 
-  // Claim surplus food from completed event
+  // Claim surplus food
   const handleClaimSurplus = async (eventId: string) => {
     setClaimingItemId(eventId);
     try {
@@ -152,8 +188,6 @@ export default function NGODashboard() {
         const text = await res.text();
         throw new Error(`Failed to claim surplus: ${text}`);
       }
-
-      // Refresh both lists
       await Promise.all([fetchCompletedEvents(true), fetchFoodItems(true)]);
     } catch (err) {
       console.error("Error claiming surplus food:", err);
@@ -172,23 +206,35 @@ export default function NGODashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between">
-          <div className="flex items-center gap-2">
-            <Leaf className="h-8 w-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-800">ZeroWaste</span>
-            <Badge variant="secondary" className="ml-2">NGO/Student</Badge>
-          </div>
-          <div className="flex items-center gap-4">
-            <NotificationSystem />
-            <Link href="/auth">
-              <Button variant="outline" size="sm">
-                <LogOut className="h-4 w-4 mr-2" /> Sign Out
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+<header className="bg-white shadow-sm border-b">
+  <div className="container mx-auto px-4 py-4 flex justify-between">
+    <div className="flex items-center gap-2">
+      <Leaf className="h-8 w-8 text-green-600" />
+      <span className="text-2xl font-bold text-green-800">ZeroWaste</span>
+      <Badge variant="secondary" className="ml-2">NGO/Student</Badge>
+    </div>
+    <div className="flex items-center gap-4">
+      <NotificationSystem />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {username || "User"}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Signed in as {username || "User"}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOut className="h-4 w-4 mr-2" /> Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  </div>
+</header>
+
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="available">
@@ -217,7 +263,6 @@ export default function NGODashboard() {
                   <div className="text-2xl font-bold text-green-600">{availableItems.length}</div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Items Claimed</CardTitle>
@@ -227,7 +272,6 @@ export default function NGODashboard() {
                   <div className="text-2xl font-bold text-blue-600">{myClaimedItems.length}</div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Impact Score</CardTitle>
