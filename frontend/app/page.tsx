@@ -11,11 +11,11 @@ export default function HomePage() {
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Leaf className="h-8 w-8 text-green-600" />
-            <span className="text-2xl font-bold text-green-800">ZeroWaste</span>
+            <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
           </div>
           <Link href="/auth">
             <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-50 bg-transparent">
-              Sign In
+              Log In
             </Button>
           </Link>
         </nav>

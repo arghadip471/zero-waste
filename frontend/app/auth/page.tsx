@@ -108,7 +108,7 @@ export default function AuthPage() {
           <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
             <ArrowLeft className="h-4 w-4" />
             <Leaf className="h-8 w-8" />
-            <span className="text-2xl font-bold">ZeroWaste</span>
+            <span className="text-2xl font-bold">BhojanSeva</span>
           </Link>
         </div>
 

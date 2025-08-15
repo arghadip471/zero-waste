@@ -167,8 +167,10 @@ export default function CanteenDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
               <Leaf className="h-8 w-8 text-green-600" />
-              <span className="text-2xl font-bold text-green-800">ZeroWaste</span>
+              <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
+              </Link>
               <Badge variant="secondary" className="ml-2">Canteen Staff</Badge>
             </div>
             <div className="flex items-center gap-4">
