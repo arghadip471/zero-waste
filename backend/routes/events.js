@@ -1,7 +1,8 @@
+// inside events.js
 import express from "express";
 const router = express.Router();
 import Event from "../models/Event.js";
-import FoodItem from "../models/FoodItem.js"; // ✅ Make sure path is correct
+import FoodItem from "../models/FoodItem.js";
 import User from "../models/User.js";
 
 function getDurationMs(hours, minutes, seconds) {
@@ -10,7 +11,7 @@ function getDurationMs(hours, minutes, seconds) {
           (Number(seconds) || 0)) * 1000;
 }
 
-// GET /api/events/event_fetch
+// ✅ GET /api/events/event_fetch
 router.get("/event_fetch", async (req, res) => {
   try {
     const events = await Event.find().sort({ date: 1 });
@@ -33,6 +34,17 @@ router.get("/event_fetch", async (req, res) => {
       if (ev.status !== newStatus) {
         ev.status = newStatus;
         await ev.save();
+
+        // ✅ FIX: use req.app.get("io")
+        const io = req.app.get("io");
+        io.emit("newNotification", {
+          type:
+            newStatus === "Upcoming" ? "event_reminder" :
+            newStatus === "Ongoing" ? "event_ongoing" :
+            "event_end",
+          message: `Event "${ev.name}" is now ${newStatus}`,
+          createdAt: new Date()
+        });
       }
     }
 
@@ -43,7 +55,7 @@ router.get("/event_fetch", async (req, res) => {
   }
 });
 
-// POST /api/events/event_add
+// ✅ POST /api/events/event_add
 router.post("/event_add", async (req, res) => {
   try {
     const { name, date, location, durationHours, durationMinutes, durationSeconds } = req.body;
@@ -73,6 +85,15 @@ router.post("/event_add", async (req, res) => {
     });
 
     const event = await newEvent.save();
+
+    // ✅ FIX: use req.app.get("io")
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      type: "event_start",
+      message: `📢 New Event Added: "${event.name}" at ${event.location}`,
+      createdAt: new Date()
+    });
+
     res.json(event);
   } catch (err) {
     console.error(err);
@@ -80,7 +101,7 @@ router.post("/event_add", async (req, res) => {
   }
 });
 
-// POST /api/events/event_log_food/:id
+// ✅ POST /api/events/event_log_food/:id
 router.post("/event_log_food/:id", async (req, res) => {
   try {
     const { foodType, quantity, description, safeForHours, pickupLocation, category } = req.body;
@@ -104,6 +125,21 @@ router.post("/event_log_food/:id", async (req, res) => {
 
     await event.save();
 
+    // ✅ FIX: use req.app.get("io")
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      type: "new_food",
+      message: `🍽️ ${quantity} of ${foodType} available at ${pickupLocation}`,
+      foodItem: {
+        name: foodType,
+        quantity: String(quantity),
+        location: pickupLocation,
+        pickupWindow: `${safeForHours}h safe`,
+        safetyTag: category
+      },
+      createdAt: new Date()
+    });
+
     res.json({ msg: "Food log updated successfully", event });
   } catch (err) {
     console.error(err);
@@ -111,30 +147,10 @@ router.post("/event_log_food/:id", async (req, res) => {
   }
 });
 
-// GET /api/events/completed_with_food
-// GET /api/events/completed_with_food
-// GET /api/events/completed_with_food
-// GET /api/events/completed_with_food
-router.get("/completed_with_food", async (req, res) => {
-  try {
-    const completedEvents = await Event.find({
-      status: "Completed",
-      foodLogged: true
-    }).sort({ date: -1 });
-
-    res.json(completedEvents);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
-  }
-});
-
-
-// PATCH /api/events/claim-surplus/:id
+// ✅ PATCH /api/events/claim-surplus/:id
 router.patch("/claim-surplus/:id", async (req, res) => {
   try {
-    const {userId} = req.body; // Get userId from request body
-    console.log("user id: ", userId);
+    const { userId } = req.body;
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ msg: "Event not found" });
     if (!event.foodDetails) return res.status(400).json({ msg: "No surplus food to claim" });
@@ -143,13 +159,11 @@ router.patch("/claim-surplus/:id", async (req, res) => {
       return res.status(400).json({ msg: "Surplus food already claimed" });
     }
 
-    // Mark claimed
     event.foodDetails.claimed = true;
     await event.save();
 
     const user = await User.findById(userId);
 
-    // Create FoodItem
     const foodItem = await FoodItem.create({
       name: event.foodDetails.foodType,
       description: event.foodDetails.description || "",
@@ -158,11 +172,19 @@ router.patch("/claim-surplus/:id", async (req, res) => {
       safetyHours: event.foodDetails.safeForHours,
       createdBy: userId,
       status: "claimed",
-      claimedBy: user.name || "anonymous", // dynamic if user auth exists
+      claimedBy: user.name || "anonymous",
       claimedAt: new Date(),
       pickupLocation: event.foodDetails.pickupLocation,
       freshnessStatus: "fresh",
       category: "cooked_meals"
+    });
+
+    // ✅ FIX: use req.app.get("io")
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      type: "food_claimed",
+      message: `✅ ${user.name} claimed ${event.foodDetails.foodType}`,
+      createdAt: new Date()
     });
 
     res.json({ msg: "Surplus food claimed successfully", event, foodItem });
@@ -171,6 +193,5 @@ router.patch("/claim-surplus/:id", async (req, res) => {
     res.status(500).json({ msg: "Server Error", error: err.message });
   }
 });
-
 
 export default router;

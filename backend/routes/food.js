@@ -19,7 +19,6 @@ router.post("/add-food", async (req, res) => {
       userId
     } = req.body;
 
-    // Basic validation
     if (!name || !description || !quantity || !expiryTime || !safetyHours || !userId || !pickupLocation || !category) {
       return res.status(400).json({ message: "Please fill in all fields" });
     }
@@ -41,6 +40,21 @@ router.post("/add-food", async (req, res) => {
 
     await newFoodItem.save();
 
+    // ✅ Emit socket event with consistent name
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      type: "new_food",
+      message: `${name} added and available for pickup at ${pickupLocation}`,
+      createdAt: new Date(),
+      foodItem: {
+        name,
+        quantity,
+        location: pickupLocation,
+        pickupWindow: `${safetyHours}h`,
+        safetyTag: "Fresh"
+      }
+    });
+
     res.status(201).json({
       message: "Food item added successfully",
       foodItem: formatFoodItem(newFoodItem),
@@ -48,48 +62,6 @@ router.post("/add-food", async (req, res) => {
   } catch (error) {
     console.error("Error adding food item:", error);
     res.status(500).json({ message: error.message || "Server error" });
-  }
-});
-
-// Fetch all food items
-router.get("/food-items", async (req, res) => {
-  const {userId} = req.query;
-  try {
-    const matchStage = userId
-      ? { $match: { createdBy: new mongoose.Types.ObjectId(userId) } }
-      : { $match: {} };
-
-    const items = await FoodItem.aggregate([
-      matchStage,
-      {
-      $lookup: {
-        from: "users",
-        localField: "createdBy",
-        foreignField: "_id",
-        as: "createdBy"
-      }
-      },
-      {
-      $unwind: {
-        path: "$createdBy",
-        preserveNullAndEmptyArrays: true
-      }
-      },
-      {
-      $sort: { createdAt: -1 }
-      },
-      {
-      $project: {
-        "createdBy.password": 0,
-        "createdBy.__v": 0
-      }
-      }
-    ]);
-
-    res.json(items.map(formatFoodItem));
-  } catch (error) {
-    console.error("Error fetching food items:", error);
-    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -114,6 +86,21 @@ router.patch("/claim-food/:id", async (req, res) => {
     foodItem.claimedAt = new Date();
     await foodItem.save();
 
+    // ✅ Emit socket event with consistent name
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      type: "food_claimed",
+      message: `${foodItem.name} was claimed by ${foodItem.claimedBy}`,
+      createdAt: new Date(),
+      foodItem: {
+        name: foodItem.name,
+        quantity: foodItem.quantity,
+        location: foodItem.pickupLocation,
+        pickupWindow: `${foodItem.safetyHours}h`,
+        safetyTag: foodItem.freshnessStatus
+      }
+    });
+
     res.json({
       message: "Food item claimed successfully",
       foodItem: formatFoodItem(foodItem),
@@ -124,7 +111,7 @@ router.patch("/claim-food/:id", async (req, res) => {
   }
 });
 
-// Helper to format items consistently
+// Helper functions remain unchanged...
 function formatFoodItem(item) {
   return {
     id: item._id.toString(),
@@ -143,7 +130,6 @@ function formatFoodItem(item) {
   };
 }
 
-// Freshness helper
 function calculateFreshness(createdAt, safeForHours) {
   const now = new Date();
   const elapsedHours = (now - new Date(createdAt)) / (1000 * 60 * 60);

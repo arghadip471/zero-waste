@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Bell, Clock, MapPin, X, Check } from "lucide-react"
+import { useSocket } from "../app/providers/SocketProvider";
 
 interface Notification {
   id: string
-  type: "new_food" | "pickup_reminder" | "expiry_warning" | "event_reminder"
+  type: "new_food" | "pickup_reminder" | "expiry_warning" | "event_reminder" | "event_start" | "event_ongoing" | "event_end" | "food_claimed"
   title: string
   message: string
   foodItem?: {
@@ -23,74 +24,67 @@ interface Notification {
 }
 
 export function NotificationSystem() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      type: "new_food",
-      title: "New Food Available",
-      message: "Fresh vegetable curry available for pickup",
-      foodItem: {
-        name: "Vegetable Curry",
-        quantity: "15 portions",
-        location: "Main Campus Canteen",
-        pickupWindow: "Next 2 hours",
-        safetyTag: "Safe for 4 hours",
-      },
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      read: false,
-      urgent: false,
-    },
-    {
-      id: "2",
-      type: "pickup_reminder",
-      title: "Pickup Reminder",
-      message: "Don't forget to collect your claimed sandwich platters",
-      foodItem: {
-        name: "Sandwich Platters",
-        quantity: "10 pieces",
-        location: "Student Center Cafe",
-        pickupWindow: "30 minutes remaining",
-        safetyTag: "Safe for 2 hours",
-      },
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      read: false,
-      urgent: true,
-    },
-    {
-      id: "3",
-      type: "event_reminder",
-      title: "Event Food Logging",
-      message: "Tech Conference ended. Any surplus food to list?",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      read: false,
-      urgent: false,
-    },
-  ])
-
+  const socket = useSocket()
+  const [notifications, setNotifications] = useState<Notification[]>([])
   const [showNotifications, setShowNotifications] = useState(false)
+
+  useEffect(() => {
+    if (!socket) return
+
+    // ✅ match backend event name
+    const handler = (notif: any) => {
+      const newNotif: Notification = {
+        id: crypto.randomUUID(),
+        type: notif.type,
+        title: getTitleFromType(notif.type),
+        message: notif.message,
+        foodItem: notif.foodItem,
+        timestamp: new Date(notif.createdAt || Date.now()),
+        read: false,
+        urgent: !!notif.urgent,
+      }
+      setNotifications(prev => [newNotif, ...prev])
+    }
+
+    socket.on("newNotification", handler)
+    return () => { socket.off("newNotification", handler) }
+  }, [socket])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
   const markAsRead = (id: string) => {
-    setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)))
+    setNotifications((list) => list.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }
 
   const dismissNotification = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id))
+    setNotifications((list) => list.filter((n) => n.id !== id))
   }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "new_food":
-        return "🍽️"
-      case "pickup_reminder":
-        return "⏰"
-      case "expiry_warning":
-        return "⚠️"
-      case "event_reminder":
-        return "📅"
-      default:
-        return "📢"
+      case "new_food": return "🍽️"
+      case "pickup_reminder": return "⏰"
+      case "expiry_warning": return "⚠️"
+      case "event_reminder": return "📅"
+      case "event_start": return "🚀"
+      case "event_ongoing": return "🔄"
+      case "event_end": return "🏁"
+      case "food_claimed": return "✅"
+      default: return "📢"
+    }
+  }
+
+  const getTitleFromType = (type: string) => {
+    switch (type) {
+      case "new_food": return "New Food Available"
+      case "pickup_reminder": return "Pickup Reminder"
+      case "expiry_warning": return "Expiry Warning"
+      case "event_reminder": return "Event Reminder"
+      case "event_start": return "Event Started"
+      case "event_ongoing": return "Event Ongoing"
+      case "event_end": return "Event Ended"
+      case "food_claimed": return "Food Claimed"
+      default: return "Notification"
     }
   }
 
@@ -116,13 +110,11 @@ export function NotificationSystem() {
 
       {showNotifications && (
         <div className="absolute right-0 top-12 w-96 max-h-96 overflow-y-auto bg-white border rounded-lg shadow-lg z-50">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Notifications</h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowNotifications(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="p-4 border-b flex items-center justify-between">
+            <h3 className="font-semibold">Notifications</h3>
+            <Button variant="ghost" size="sm" onClick={() => setShowNotifications(false)}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
