@@ -5,7 +5,9 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+// ============================
 // Add new food item
+// ============================
 router.post("/add-food", async (req, res) => {
   try {
     const {
@@ -40,7 +42,7 @@ router.post("/add-food", async (req, res) => {
 
     await newFoodItem.save();
 
-    // ✅ Emit socket event with consistent name
+    // ✅ Emit socket event
     const io = req.app.get("io");
     io.emit("newNotification", {
       type: "new_food",
@@ -65,49 +67,22 @@ router.post("/add-food", async (req, res) => {
   }
 });
 
+// ============================
 // Fetch all food items
+// ============================
 router.get("/food-items", async (req, res) => {
-  const {userId} = req.query;
   try {
-    const matchStage = userId
-      ? { $match: { createdBy: new mongoose.Types.ObjectId(userId) } }
-      : { $match: {} };
-
-    const items = await FoodItem.aggregate([
-      matchStage,
-      {
-      $lookup: {
-        from: "users",
-        localField: "createdBy",
-        foreignField: "_id",
-        as: "createdBy"
-      }
-      },
-      {
-      $unwind: {
-        path: "$createdBy",
-        preserveNullAndEmptyArrays: true
-      }
-      },
-      {
-      $sort: { createdAt: -1 }
-      },
-      {
-      $project: {
-        "createdBy.password": 0,
-        "createdBy.__v": 0
-      }
-      }
-    ]);
-
-    res.json(items.map(formatFoodItem));
+    const foodItems = await FoodItem.find().sort({ createdAt: -1 });
+    res.json(foodItems.map(formatFoodItem));
   } catch (error) {
     console.error("Error fetching food items:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Server error" });
   }
 });
 
+// ============================
 // Claim a food item
+// ============================
 router.patch("/claim-food/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +103,7 @@ router.patch("/claim-food/:id", async (req, res) => {
     foodItem.claimedAt = new Date();
     await foodItem.save();
 
-    // ✅ Emit socket event with consistent name
+    // ✅ Emit socket event
     const io = req.app.get("io");
     io.emit("newNotification", {
       type: "food_claimed",
@@ -153,7 +128,9 @@ router.patch("/claim-food/:id", async (req, res) => {
   }
 });
 
-// Helper functions remain unchanged...
+// ============================
+// Helper functions
+// ============================
 function formatFoodItem(item) {
   return {
     id: item._id.toString(),
