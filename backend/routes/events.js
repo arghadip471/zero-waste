@@ -147,6 +147,20 @@ router.post("/event_log_food/:id", async (req, res) => {
   }
 });
 
+router.get("/completed_with_food", async (req, res) => {
+  try {
+    const completedEvents = await Event.find({
+      status: "Completed",
+      foodLogged: true
+    }).sort({ date: -1 });
+
+    res.json(completedEvents);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
 // ✅ PATCH /api/events/claim-surplus/:id
 router.patch("/claim-surplus/:id", async (req, res) => {
   try {
