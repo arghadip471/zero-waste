@@ -49,8 +49,9 @@ const EventCard = ({ event, onFoodLogged }: { event: Event; onFoodLogged: () => 
   const mins = event.durationMinutes || 0;
   const secs = event.durationSeconds || 0;
 
-  const handleLogFood = async () => {
-    await fetch(`http://localhost:5000/api/events/event_log_food/${event._id}`, {
+const handleLogFood = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/events/event_log_food/${event._id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -61,14 +62,31 @@ const EventCard = ({ event, onFoodLogged }: { event: Event; onFoodLogged: () => 
         pickupLocation
       })
     });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.msg || "Failed to log food");  // show backend error
+      return;
+    }
+
+    console.log("Food logged:", data);
+
+    // reset form only on success
     setShowFoodForm(false);
     setFoodType("");
     setQuantity("");
     setDescription("");
     setSafeForHours(0);
     setPickupLocation("");
-    onFoodLogged();
-  };
+
+    onFoodLogged(); // refresh events
+  } catch (err) {
+    console.error("Error logging food:", err);
+    alert("Something went wrong while logging food");
+  }
+};
+
 
   return (
     <div className="event-item">
