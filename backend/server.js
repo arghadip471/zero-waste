@@ -38,7 +38,7 @@ app.use(express.json());
 mongoose
   .connect(
     process.env.MONGO_URI ||
-      "mongodb+srv://chowdhuryarghadip471:2dUxNfq3Qa7cT5eZ@cluster0.4mvbsij.mongodb.net/zero_waste?retryWrites=true&w=majority&appName=Cluster0",
+      "mongodb+srv://chowdhuryarghadip471:2dUxNfq3Qa7cT5eZ@cluster0.4mvbsij.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/zero_waste'",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
