@@ -152,31 +152,31 @@ export default function CanteenDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-yellow-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-yellow-100 shadow-sm border-b border-yellow-300">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
-                <Leaf className="h-8 w-8 text-green-600" />
-                <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
+              <Link href="/" className="flex items-center gap-2 text-yellow-800 hover:text-yellow-700">
+                <Leaf className="h-8 w-8 text-yellow-600" />
+                <span className="text-2xl font-bold text-yellow-900">BhojanSeva</span>
               </Link>
-              <Badge variant="secondary" className="ml-2">Canteen Staff</Badge>
+              <Badge className="ml-2 bg-yellow-600 text-white">Canteen Staff</Badge>
             </div>
             <div className="flex items-center gap-4">
               <NotificationSystem />
               {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 border rounded-md px-2 py-1 hover:bg-gray-100">
+                  <button className="flex items-center gap-1 border rounded-md px-2 py-1 border-yellow-700 text-yellow-800 hover:bg-yellow-200">
                     <User className="h-5 w-5" />
                     <span>{username || "User"}</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-3 py-2 text-sm text-gray-600 border-b">
-                    Signed in as <span className="font-medium">{username || "User"}</span>
+                <DropdownMenuContent align="end" className="w-56 bg-yellow-50 border border-yellow-300">
+                  <div className="px-3 py-2 text-sm text-yellow-700 border-b">
+                    Signed in as <span className="font-medium text-yellow-900">{username || "User"}</span>
                   </div>
                   <DropdownMenuItem asChild>
                     <Link href="/auth" className="flex items-center gap-2 text-red-600">
@@ -193,8 +193,8 @@ export default function CanteenDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Canteen Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your food listings and reduce waste</p>
+            <h1 className="text-3xl font-bold text-yellow-900">Canteen Dashboard</h1>
+            <p className="text-yellow-700 mt-2">Manage your food listings and reduce waste</p>
           </div>
           <Button onClick={() => setShowAddForm(true)} className="bg-green-600 hover:bg-green-700">
             <Plus className="h-4 w-4 mr-2" /> Add Food Item
@@ -323,13 +323,13 @@ export default function CanteenDashboard() {
               <h2 className="text-xl font-semibold mb-4">Your Food Listings</h2>
 
               {loading ? (
-                <p>Loading food items...</p>
+                <p className="text-yellow-700">Loading food items...</p>
               ) : error ? (
                 <p className="text-red-600">Error: {error}</p>
               ) : foodItems.length === 0 ? (
                 <Card>
                   <CardContent className="text-center py-8">
-                    <p className="text-gray-500">No food items listed yet. Add your first item to get started!</p>
+                    <p className="text-yellow-700">No food items listed yet. Add your first item to get started!</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -426,7 +426,7 @@ export default function CanteenDashboard() {
           <TabsContent value="events">
             <h2 className="text-xl font-semibold mb-4">Upcoming Events</h2>
             {loadingEvents ? (
-              <p>Loading upcoming events...</p>
+              <p className="text-yellow-700">Loading upcoming events...</p>
             ) : eventsError ? (
               <p className="text-red-600">Error: {eventsError}</p>
             ) : upcomingEvents.length === 0 ? (

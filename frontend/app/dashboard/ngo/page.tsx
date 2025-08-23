@@ -203,33 +203,33 @@ export default function NGODashboard() {
   const myClaimedItems = foodItems.filter((i) => i.status === "claimed");
 
   if (loading) {
-    return <div className="p-6 text-center text-gray-500">Loading food items...</div>;
+    return <div className="p-6 text-center text-yellow-700">Loading food items...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-yellow-50">
       {/* Header */}
-<header className="bg-white shadow-sm border-b">
+<header className="bg-yellow-100 shadow-sm border-b border-yellow-300">
   <div className="container mx-auto px-4 py-4 flex justify-between">
     <div className="flex items-center gap-2">
-      <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
-      <Leaf className="h-8 w-8 text-green-600" />
-      <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
+      <Link href="/" className="flex items-center gap-2 text-yellow-800 hover:text-yellow-700">
+      <Leaf className="h-8 w-8 text-yellow-600" />
+      <span className="text-2xl font-bold text-yellow-900">BhojanSeva</span>
       </Link>
-      <Badge variant="secondary" className="ml-2">NGO/Student</Badge>
+      <Badge className="ml-2 bg-yellow-600 text-white">NGO/Student</Badge>
     </div>
     <div className="flex items-center gap-4">
       <NotificationSystem />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-2 border-yellow-700 text-yellow-800 hover:bg-yellow-200">
             <User className="h-4 w-4" />
             {username || "User"}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Signed in as {username || "User"}</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-56 bg-yellow-50 border border-yellow-300">
+          <DropdownMenuLabel className="text-yellow-800">Signed in as {username || "User"}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" /> Sign Out
@@ -239,8 +239,6 @@ export default function NGODashboard() {
     </div>
   </div>
 </header>
-
-
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="available">
           <TabsList>
@@ -253,8 +251,8 @@ export default function NGODashboard() {
           {/* Available Items */}
           <TabsContent value="available" className="space-y-6">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Available Food Items</h1>
-              <p className="text-gray-600 mt-2">Claim surplus food from canteens and help reduce waste</p>
+              <h1 className="text-3xl font-bold text-yellow-900">Available Food Items</h1>
+              <p className="text-yellow-700 mt-2">Claim surplus food from canteens and help reduce waste</p>
             </div>
 
             {/* Stats */}
@@ -292,7 +290,7 @@ export default function NGODashboard() {
             {/* List */}
             <div className="space-y-6">
               {availableItems.length === 0 ? (
-                <Card><CardContent className="text-center py-8"><p className="text-gray-500">No food items available at the moment. Check back later!</p></CardContent></Card>
+                <Card><CardContent className="text-center py-8"><p className="text-yellow-700">No food items available at the moment. Check back later!</p></CardContent></Card>
               ) : (
                 <div className="grid gap-4">
                   {availableItems.map((item) => (
@@ -368,7 +366,7 @@ export default function NGODashboard() {
                 ))}
               </div>
             ) : (
-              <Card><CardContent className="text-center py-8"><p className="text-gray-500">No items claimed yet.</p></CardContent></Card>
+              <Card><CardContent className="text-center py-8"><p className="text-yellow-700">No items claimed yet.</p></CardContent></Card>
             )}
           </TabsContent>
 
@@ -378,7 +376,7 @@ export default function NGODashboard() {
               <CardHeader><CardTitle>Completed Events with Surplus Food</CardTitle></CardHeader>
               <CardContent>
                 {completedEvents.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No completed events with surplus food yet.</p>
+                  <p className="text-yellow-700 text-sm">No completed events with surplus food yet.</p>
                 ) : (
                   <div className="space-y-4">
                     {completedEvents.map((event) => (
@@ -411,7 +409,7 @@ export default function NGODashboard() {
                             )}
                           </div>
                         ) : (
-                          <p className="text-gray-500 text-sm">No detailed food log available.</p>
+                          <p className="text-yellow-700 text-sm">No detailed food log available.</p>
                         )}
                       </div>
                     ))}
@@ -424,7 +422,7 @@ export default function NGODashboard() {
           {/* Analytics */}
           <TabsContent value="analytics">
             {loadingStats ? (
-              <div className="flex items-center text-gray-500">
+              <div className="flex items-center text-yellow-700">
                 <Loader2 className="animate-spin h-5 w-5 mr-2" /> Loading stats...
               </div>
             ) : errorStats ? (
