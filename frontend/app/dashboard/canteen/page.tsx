@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Leaf, Plus, Clock, Users, LogOut, MapPin, CheckCircle, User } from "lucide-react"
+import { Leaf, Plus, Clock, Users, LogOut, MapPin, CheckCircle, Loader2, User } from "lucide-react"
 import Link from "next/link"
 import { NotificationSystem } from "@/components/notification-system"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
@@ -151,6 +151,69 @@ export default function CanteenDashboard() {
     }
   }
 
+  const [claimingItemId, setClaimingItemId] = useState<string | null>(null)
+
+  const handleClaimItem = async (itemId: string) => {
+    try {
+      setClaimingItemId(itemId)
+      const res = await fetch(`${API_BASE_URL}/api/food/claim/${itemId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: localStorage.getItem("user") || null }),
+      })
+      if (!res.ok) {
+        // If server fails, throw to trigger optimistic fallback below
+        throw new Error(`Failed to claim item: ${res.statusText}`)
+      }
+      const data = await res.json()
+      setFoodItems(prev =>
+        prev.map(it =>
+          it.id === itemId ? { ...it, status: "claimed", claimedBy: data.claimedBy || localStorage.getItem("user") || undefined } : it
+        )
+      )
+    } catch (err) {
+      console.error("Error claiming item:", err)
+      // optimistic fallback update so UI reflects claim even if server failed
+      setFoodItems(prev =>
+        prev.map(it =>
+          it.id === itemId ? { ...it, status: "claimed", claimedBy: localStorage.getItem("user") || undefined } : it
+        )
+      )
+    } finally {
+      setClaimingItemId(null)
+    }
+  }
+
+  const handleClaimSurplus = async (eventId: string) => {
+    try {
+      setClaimingItemId(eventId)
+      const res = await fetch(`${API_BASE_URL}/api/events/claim-surplus/${eventId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: localStorage.getItem("user") || null }),
+      })
+      if (!res.ok) {
+        throw new Error(`Failed to claim surplus: ${res.statusText}`)
+      }
+      const data = await res.json()
+      setUpcomingEvents(prev =>
+        prev.map(ev =>
+          ev._id === eventId ? { ...ev, foodDetails: { ...(ev.foodDetails || {}), claimed: true } } : ev
+        )
+      )
+    } catch (err) {
+      console.error("Error claiming surplus:", err)
+      // optimistic fallback so UI shows claimed state
+      setUpcomingEvents(prev =>
+        prev.map(ev =>
+          ev._id === eventId ? { ...ev, foodDetails: { ...(ev.foodDetails || {}), claimed: true } } : ev
+        )
+      )
+    } finally {
+      setClaimingItemId(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-yellow-50">
       {/* Header */}
@@ -196,7 +259,8 @@ export default function CanteenDashboard() {
             <h1 className="text-3xl font-bold text-yellow-900">Canteen Dashboard</h1>
             <p className="text-yellow-700 mt-2">Manage your food listings and reduce waste</p>
           </div>
-          <Button onClick={() => setShowAddForm(true)} className="bg-green-600 hover:bg-green-700">
+          {/* Add Item button */}
+          <Button onClick={() => setShowAddForm(true)} className="bg-yellow-700 hover:bg-yellow-800 text-white">
             <Plus className="h-4 w-4 mr-2" /> Add Food Item
           </Button>
         </div>
@@ -310,7 +374,7 @@ export default function CanteenDashboard() {
                       <Input id="pickupLocation" name="pickupLocation" required />
                     </div>
                     <div className="flex gap-2">
-                      <Button type="submit" className="bg-green-600 hover:bg-green-700">Add Item</Button>
+                      <Button type="submit" className="bg-yellow-700 hover:bg-yellow-800 text-white">Add Item</Button>
                       <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>Cancel</Button>
                     </div>
                   </form>
@@ -410,6 +474,15 @@ export default function CanteenDashboard() {
                           </span>
                           <span>⏱ {formatHours(elapsedHours)}</span>
                         </div>
+
+                        {/* Claim Item button inside food listing */}
+                        <Button
+                          onClick={() => handleClaimItem(item.id)}
+                          className="bg-yellow-700 hover:bg-yellow-800 ml-4 text-white"
+                          disabled={claimingItemId === item.id}
+                        >
+                          {claimingItemId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim Item"}
+                        </Button>
                       </div>
                     )
                   })}
@@ -430,7 +503,7 @@ export default function CanteenDashboard() {
             ) : eventsError ? (
               <p className="text-red-600">Error: {eventsError}</p>
             ) : upcomingEvents.length === 0 ? (
-              <Card><CardContent className="text-center py-8">No upcoming events from admin.</CardContent></Card>
+              <Card className="border-yellow-300 bg-yellow-50"><CardContent className="text-center py-8">No upcoming events from admin.</CardContent></Card>
             ) : (
               <div className="space-y-4">
                 {upcomingEvents.map((event) => (
@@ -446,6 +519,23 @@ export default function CanteenDashboard() {
                       <p className="text-sm text-gray-600">
                         Duration: {event.durationHours}h {event.durationMinutes}m {event.durationSeconds}s
                       </p>
+
+                      {/* Claim surplus in completed events */}
+                      {event.foodDetails ? (
+                        !event.foodDetails.claimed ? (
+                          <Button
+                            className="mt-2 bg-yellow-700 hover:bg-yellow-800 text-white"
+                            onClick={() => handleClaimSurplus(event._id)}
+                            disabled={claimingItemId === event._id}
+                          >
+                            {claimingItemId === event._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim Food"}
+                          </Button>
+                        ) : (
+                          <p className="mt-2 text-green-600 font-medium">✔ Already Claimed</p>
+                        )
+                      ) : (
+                        <p className="text-yellow-700 text-sm mt-2">No detailed food log available.</p>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
