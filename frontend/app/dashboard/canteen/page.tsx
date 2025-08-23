@@ -7,16 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Leaf, Plus, Clock, Users, LogOut, MapPin, CheckCircle } from "lucide-react"
+import { Leaf, Plus, Clock, Users, LogOut, MapPin, CheckCircle, User } from "lucide-react"
 import Link from "next/link"
 import { NotificationSystem } from "@/components/notification-system"
-import { FoodSafetyTracker } from "@/components/food-safety-tracker"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { User } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface FoodItem {
   id: string
@@ -33,7 +31,6 @@ interface FoodItem {
   category: string
 }
 
-
 export default function CanteenDashboard() {
   const [username, setUsername] = useState<string | null>(null);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([])
@@ -41,14 +38,11 @@ export default function CanteenDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState<any>(null)
- 
   const [loadingStats, setLoadingStats] = useState(true)
   const [errorStats, setErrorStats] = useState<string | null>(null)
-
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [eventsError, setEventsError] = useState<string | null>(null)
-
 
   const API_BASE_URL = "http://localhost:5000"
 
@@ -104,7 +98,7 @@ export default function CanteenDashboard() {
     }
   }
 
-   // Fetch upcoming events
+  // Fetch upcoming events
   useEffect(() => {
     async function fetchUpcomingEvents() {
       try {
@@ -122,8 +116,6 @@ export default function CanteenDashboard() {
     }
     fetchUpcomingEvents()
   }, [])
-
-
 
   const handleAddItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -151,7 +143,6 @@ export default function CanteenDashboard() {
       })
       if (!res.ok) throw new Error(`Failed to add item: ${res.statusText}`)
       const savedItem = await res.json()
-      console.log("Food item added:", savedItem)
       setFoodItems((prev) => [savedItem.foodItem, ...prev])
       setShowAddForm(false)
       e.currentTarget.reset()
@@ -168,14 +159,13 @@ export default function CanteenDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
-              <Leaf className="h-8 w-8 text-green-600" />
-              <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
+                <Leaf className="h-8 w-8 text-green-600" />
+                <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
               </Link>
               <Badge variant="secondary" className="ml-2">Canteen Staff</Badge>
             </div>
             <div className="flex items-center gap-4">
               <NotificationSystem />
-              
               {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -289,6 +279,7 @@ export default function CanteenDashboard() {
                             <SelectValue placeholder="Select safety duration" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="1">1 hours</SelectItem>
                             <SelectItem value="2">2 hours</SelectItem>
                             <SelectItem value="4">4 hours</SelectItem>
                             <SelectItem value="6">6 hours</SelectItem>
@@ -350,18 +341,26 @@ export default function CanteenDashboard() {
                     const elapsedHours = elapsedMs / (1000 * 60 * 60)
                     const progressPercent = Math.min((elapsedHours / item.safetyHours) * 100, 100)
                     const remainingHours = Math.max(item.safetyHours - elapsedHours, 0)
+
                     const formatHours = (h: number) => {
+                      if (h <= 0) return "Expired"
                       if (h < 1) return `${Math.round(h * 60)} mins`
                       return `${Math.floor(h)}h ${Math.round((h % 1) * 60)}m`
                     }
+
+                    const isExpired = elapsedHours >= item.safetyHours
 
                     return (
                       <div key={item.id} className="rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold">{item.name}</h3>
-                          {item.status === "available" && <Badge className="bg-green-100 text-green-800">Available</Badge>}
-                          {item.status === "claimed" && <Badge className="bg-blue-100 text-blue-800">Claimed</Badge>}
-                          {item.status === "expired" && <Badge className="bg-red-100 text-red-800">Expired</Badge>}
+                          {item.status === "available" && !isExpired && (
+                            <Badge className="bg-green-100 text-green-800">Available</Badge>
+                          )}
+                          {(item.status === "claimed") && <Badge className="bg-blue-100 text-blue-800">Claimed</Badge>}
+                          {(item.status === "expired" || isExpired) && (
+                            <Badge className="bg-red-100 text-red-800">Expired</Badge>
+                          )}
                         </div>
                         <p className="text-gray-600 mb-3">{item.description}</p>
                         
@@ -375,19 +374,25 @@ export default function CanteenDashboard() {
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                          <Badge className="bg-green-100 text-green-800">Safe to Eat</Badge>
+                          <CheckCircle className={`h-5 w-5 ${isExpired ? "text-red-600" : "text-green-600"}`} />
+                          <Badge className={isExpired ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
+                            {isExpired ? "Expired" : "Safe to Eat"}
+                          </Badge>
                         </div>
 
                         <div className="relative h-2 rounded-full bg-gray-300">
                           <div
-                            className="absolute top-0 left-0 h-2 rounded-full bg-black"
+                            className={`absolute top-0 left-0 h-2 rounded-full ${isExpired ? "bg-red-600" : "bg-black"}`}
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
 
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>Safe for {formatHours(remainingHours)} from listing</span>
+                          <span>
+                            {isExpired
+                              ? "❌ Safety time exceeded"
+                              : `Safe for ${formatHours(remainingHours)} from listing`}
+                          </span>
                           <span>⏱ {formatHours(elapsedHours)}</span>
                         </div>
                       </div>
@@ -399,9 +404,7 @@ export default function CanteenDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AnalyticsDashboard stats={
-              stats
-            } />
+            <AnalyticsDashboard stats={stats} />
           </TabsContent>
 
           {/* Events */}
