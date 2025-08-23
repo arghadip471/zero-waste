@@ -349,6 +349,7 @@ export default function CanteenDashboard() {
                     }
 
                     const isExpired = elapsedHours >= item.safetyHours
+                    const displayExpired = item.status !== "claimed" && (item.status === "expired" || isExpired)
 
                     return (
                       <div key={item.id} className="rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
@@ -357,8 +358,10 @@ export default function CanteenDashboard() {
                           {item.status === "available" && !isExpired && (
                             <Badge className="bg-green-100 text-green-800">Available</Badge>
                           )}
-                          {(item.status === "claimed") && <Badge className="bg-blue-100 text-blue-800">Claimed</Badge>}
-                          {(item.status === "expired" || isExpired) && (
+                          {item.status === "claimed" && (
+                            <Badge className="bg-blue-100 text-blue-800">Claimed</Badge>
+                          )}
+                          {displayExpired && (
                             <Badge className="bg-red-100 text-red-800">Expired</Badge>
                           )}
                         </div>
@@ -374,22 +377,34 @@ export default function CanteenDashboard() {
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle className={`h-5 w-5 ${isExpired ? "text-red-600" : "text-green-600"}`} />
-                          <Badge className={isExpired ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
-                            {isExpired ? "Expired" : "Safe to Eat"}
+                          <CheckCircle
+                            className={`h-5 w-5 ${
+                              displayExpired ? "text-red-600" : "text-green-600"
+                            }`}
+                          />
+                          <Badge
+                            className={
+                              displayExpired
+                                ? "bg-red-100 text-red-800"
+                                : "bg-green-100 text-green-800"
+                            }
+                          >
+                            {displayExpired ? "Expired" : "Safe to Eat"}
                           </Badge>
                         </div>
 
                         <div className="relative h-2 rounded-full bg-gray-300">
                           <div
-                            className={`absolute top-0 left-0 h-2 rounded-full ${isExpired ? "bg-red-600" : "bg-black"}`}
+                            className={`absolute top-0 left-0 h-2 rounded-full ${
+                              displayExpired ? "bg-red-600" : "bg-black"
+                            }`}
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
 
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                           <span>
-                            {isExpired
+                            {displayExpired
                               ? "❌ Safety time exceeded"
                               : `Safe for ${formatHours(remainingHours)} from listing`}
                           </span>
