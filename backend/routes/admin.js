@@ -1,14 +1,17 @@
 import express from "express";
 import FoodItem from "../models/FoodItem.js";
-import mongoose from "mongoose";
 
 const router = express.Router();
 
 // 📌 Constants (adjust according to real-world data)
-const WATER_PER_SERVING_LITERS = 2; // liters saved per serving
-const CARBON_PER_SERVING_KG = 2.5;    // kg CO₂e saved per serving
-const BUCKET_CAPACITY_LITERS = 10;    // liters per bucket
-const CARBON_PER_CAR_YEAR_KG = 4600;  // average kg CO₂ emitted per car per year
+const FOOD_SAVED_PER_PERSON_KG = 0.3; // 0.3 kg per serving/person
+const WATER_PER_SERVING_LITERS = 2;   // old constant (for reference)
+const CARBON_PER_SERVING_KG = 2.5;    // old constant (for reference)
+
+
+
+const BUCKET_CAPACITY_LITERS = 10;
+const CARBON_PER_CAR_YEAR_KG = 4600;
 
 router.get("/stats", async (req, res) => {
   try {
@@ -21,45 +24,44 @@ router.get("/stats", async (req, res) => {
 
     // 📌 Category breakdown
     const topCategories = await FoodItem.aggregate([
-  {
-    $group: {
-      _id: "$category",
-      totalKg: {
-        $sum: {
-          $cond: [
-            { $regexMatch: { input: "$quantity", regex: /^[0-9]+$/ } }, // only numeric quantities
-            { $toDouble: "$quantity" },
-            0
-          ]
+      {
+        $group: {
+          _id: "$category",
+          totalKg: {
+            $sum: {
+              $cond: [
+                { $regexMatch: { input: "$quantity", regex: /^[0-9]+$/ } },
+                { $toDouble: "$quantity" },
+                0
+              ]
+            }
+          }
         }
-      }
-    }
-  },
-  { $sort: { totalKg: -1 } },
-  { $limit: 5 },
-  {
-    $group: {
-      _id: null,
-      categories: { $push: "$$ROOT" },
-      totalWeight: { $sum: "$totalKg" }
-    }
-  },
-  { $unwind: "$categories" },
-  {
-    $project: {
-      category: "$categories._id",
-      totalKg: "$categories.totalKg",
-      percentage: {
-        $round: [
-          { $multiply: [{ $divide: ["$categories.totalKg", "$totalWeight"] }, 100] },
-          0
-        ]
-      }
-    }
-  },
-  { $sort: { totalKg: -1 } }
-]);
-
+      },
+      { $sort: { totalKg: -1 } },
+      { $limit: 5 },
+      {
+        $group: {
+          _id: null,
+          categories: { $push: "$$ROOT" },
+          totalWeight: { $sum: "$totalKg" }
+        }
+      },
+      { $unwind: "$categories" },
+      {
+        $project: {
+          category: "$categories._id",
+          totalKg: "$categories.totalKg",
+          percentage: {
+            $round: [
+              { $multiply: [{ $divide: ["$categories.totalKg", "$totalWeight"] }, 100] },
+              0
+            ]
+          }
+        }
+      },
+      { $sort: { totalKg: -1 } }
+    ]);
 
     // 📌 People served (quantity = servings)
     const totalServings = await FoodItem.aggregate([
@@ -85,19 +87,20 @@ router.get("/stats", async (req, res) => {
     const claimedCount = await FoodItem.countDocuments({ status: "claimed" });
     const wasteReduction = totalFood > 0 ? (claimedCount / totalFood) * 100 : 0;
 
-    // 💧 Water saved
-    const totalWaterSavedLiters = servingsTotal * WATER_PER_SERVING_LITERS;
-    const totalBucketsSaved = totalWaterSavedLiters / BUCKET_CAPACITY_LITERS;
-    
+    // 🍽 Food saved in kg
+    const totalFoodSavedKg = servingsTotal * FOOD_SAVED_PER_PERSON_KG;
 
-    // 🌱 Carbon saved
-    const totalCarbonSavedKg = servingsTotal * CARBON_PER_SERVING_KG;
+    // 💧 Water saved (based on food weight)
+    const totalWaterSavedLiters = totalFoodSavedKg * WATER_PER_SERVING_LITERS ;
+    const totalBucketsSaved = totalWaterSavedLiters / BUCKET_CAPACITY_LITERS;
+
+    // 🌱 Carbon saved (based on food weight)
+    const totalCarbonSavedKg = totalFoodSavedKg * CARBON_PER_SERVING_KG;
     const carsOffStreetTotal = totalCarbonSavedKg / CARBON_PER_CAR_YEAR_KG;
-   
 
     // 📤 Send response
     res.json({
-      foodSaved: { total: totalFood, thisMonth: thisMonthFood, trend: 0 },
+      foodSaved: { total: totalFoodSavedKg, thisMonth: thisMonthFood, trend: 0 },
       peopleServed: { total: servingsTotal },
       categories: topCategories.map(cat => ({
         category: cat.category,
