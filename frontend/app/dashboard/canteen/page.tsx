@@ -203,7 +203,7 @@ export default function CanteenDashboard() {
 
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
+          <Card className="border-yellow-300 bg-yellow-50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Items Listed</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -212,7 +212,7 @@ export default function CanteenDashboard() {
               <div className="text-2xl font-bold">{foodItems.length}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-yellow-300 bg-yellow-50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Available Items</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -223,7 +223,7 @@ export default function CanteenDashboard() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-yellow-300 bg-yellow-50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Items Claimed</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -246,7 +246,7 @@ export default function CanteenDashboard() {
           <TabsContent value="listings">
             {/* Add Item Form */}
             {showAddForm && (
-              <Card className="mb-8">
+              <Card className="border-yellow-300 bg-yellow-50 mb-8">
                 <CardHeader>
                   <CardTitle>Add New Food Item</CardTitle>
                   <CardDescription>List surplus food for NGOs and students to claim</CardDescription>
@@ -327,7 +327,7 @@ export default function CanteenDashboard() {
               ) : error ? (
                 <p className="text-red-600">Error: {error}</p>
               ) : foodItems.length === 0 ? (
-                <Card>
+                <Card className="border-yellow-300 bg-yellow-50">
                   <CardContent className="text-center py-8">
                     <p className="text-yellow-700">No food items listed yet. Add your first item to get started!</p>
                   </CardContent>
@@ -352,9 +352,9 @@ export default function CanteenDashboard() {
                     const displayExpired = item.status !== "claimed" && (item.status === "expired" || isExpired)
 
                     return (
-                      <div key={item.id} className="rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
+                      <div key={item.id} className="rounded-lg border border-yellow-300 bg-yellow-50 p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold">{item.name}</h3>
+                          <h3 className="text-lg font-semibold text-yellow-900">{item.name}</h3>
                           {item.status === "available" && !isExpired && (
                             <Badge className="bg-green-100 text-green-800">Available</Badge>
                           )}
@@ -365,9 +365,9 @@ export default function CanteenDashboard() {
                             <Badge className="bg-red-100 text-red-800">Expired</Badge>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-3">{item.description}</p>
+                        <p className="text-yellow-700 mb-3">{item.description}</p>
                         
-                        <div className="flex gap-6 text-sm text-gray-500 mb-4">
+                        <div className="flex gap-6 text-sm text-yellow-700 mb-4">
                           <span><strong>Quantity:</strong> {item.quantity}</span>
                           <span><strong>Available for:</strong> {item.expiryTime}</span>
                           <span className="flex items-center gap-1">
@@ -402,7 +402,7 @@ export default function CanteenDashboard() {
                           />
                         </div>
 
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <div className="flex justify-between text-xs text-yellow-700 mt-1">
                           <span>
                             {displayExpired
                               ? "❌ Safety time exceeded"
@@ -434,7 +434,7 @@ export default function CanteenDashboard() {
             ) : (
               <div className="space-y-4">
                 {upcomingEvents.map((event) => (
-                  <Card key={event._id} className="border border-green-300">
+                  <Card key={event._id} className="border-yellow-300 bg-yellow-50">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                       <div>
                         <CardTitle>{event.name}</CardTitle>
@@ -450,8 +450,8 @@ export default function CanteenDashboard() {
                   </Card>
                 ))}
               </div>
-            )}
-          </TabsContent>
+             )}
+           </TabsContent>
         </Tabs>
       </div>
     </div>

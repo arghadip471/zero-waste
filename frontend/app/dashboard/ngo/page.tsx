@@ -257,7 +257,7 @@ export default function NGODashboard() {
 
             {/* Stats */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <Card>
+              <Card className="border-yellow-300 bg-yellow-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Available Items</CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
@@ -266,7 +266,7 @@ export default function NGODashboard() {
                   <div className="text-2xl font-bold text-green-600">{availableItems.length}</div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-yellow-300 bg-yellow-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Items Claimed</CardTitle>
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -275,7 +275,7 @@ export default function NGODashboard() {
                   <div className="text-2xl font-bold text-blue-600">{myClaimedItems.length}</div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-yellow-300 bg-yellow-50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Impact Score</CardTitle>
                   <Leaf className="h-4 w-4 text-muted-foreground" />
@@ -290,11 +290,11 @@ export default function NGODashboard() {
             {/* List */}
             <div className="space-y-6">
               {availableItems.length === 0 ? (
-                <Card><CardContent className="text-center py-8"><p className="text-yellow-700">No food items available at the moment. Check back later!</p></CardContent></Card>
+                <Card className="border-yellow-300 bg-yellow-50"><CardContent className="text-center py-8"><p className="text-yellow-700">No food items available at the moment. Check back later!</p></CardContent></Card>
               ) : (
                 <div className="grid gap-4">
                   {availableItems.map((item) => (
-                    <Card key={item.id} className="hover:shadow-md transition-shadow">
+                    <Card key={item.id} className="hover:shadow-md transition-shadow border-yellow-300 bg-yellow-50">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -337,7 +337,7 @@ export default function NGODashboard() {
             {myClaimedItems.length > 0 ? (
               <div className="grid gap-4">
                 {myClaimedItems.map((item) => (
-                  <Card key={item.id} className="border-green-200">
+                  <Card key={item.id} className="border-yellow-300 bg-yellow-50">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -366,56 +366,56 @@ export default function NGODashboard() {
                 ))}
               </div>
             ) : (
-              <Card><CardContent className="text-center py-8"><p className="text-yellow-700">No items claimed yet.</p></CardContent></Card>
+              <Card className="border-yellow-300 bg-yellow-50"><CardContent className="text-center py-8"><p className="text-yellow-700">No items claimed yet.</p></CardContent></Card>
             )}
           </TabsContent>
 
           {/* Completed Events */}
           <TabsContent value="completed" className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Completed Events with Surplus Food</CardTitle></CardHeader>
-              <CardContent>
-                {completedEvents.length === 0 ? (
+            <Card className="border-yellow-300 bg-yellow-50">
+               <CardHeader><CardTitle>Completed Events with Surplus Food</CardTitle></CardHeader>
+               <CardContent>
+                 {completedEvents.length === 0 ? (
                   <p className="text-yellow-700 text-sm">No completed events with surplus food yet.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {completedEvents.map((event) => (
-                      <div key={event._id} className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-bold text-lg">{event.name}</h3>
-                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">Completed</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{new Date(event.date).toLocaleString()} — {event.location}</p>
+                 ) : (
+                   <div className="space-y-4">
+                     {completedEvents.map((event) => (
+                       <div key={event._id} className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow">
+                         <div className="flex justify-between items-center mb-2">
+                           <h3 className="font-bold text-lg">{event.name}</h3>
+                           <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">Completed</span>
+                         </div>
+                         <p className="text-sm text-gray-600 mb-2">{new Date(event.date).toLocaleString()} — {event.location}</p>
 
-                        {event.foodDetails ? (
-                          <div className="mt-3 space-y-1 text-sm text-gray-700">
-                            <p><strong>🍽 Food Type:</strong> {event.foodDetails.foodType}</p>
-                            <p><strong>📦 Quantity:</strong> {event.foodDetails.quantity}</p>
-                            <p><strong>📝 Description:</strong> {event.foodDetails.description}</p>
-                            <p><strong>⏳ Safe for:</strong> {event.foodDetails.safeForHours} hours</p>
-                            <p><strong>📍 Pickup Location:</strong> {event.foodDetails.pickupLocation}</p>
-                            <p className="text-xs text-gray-500">Logged at: {new Date(event.foodDetails.loggedAt).toLocaleString()}</p>
+                         {event.foodDetails ? (
+                           <div className="mt-3 space-y-1 text-sm text-gray-700">
+                             <p><strong>🍽 Food Type:</strong> {event.foodDetails.foodType}</p>
+                             <p><strong>📦 Quantity:</strong> {event.foodDetails.quantity}</p>
+                             <p><strong>📝 Description:</strong> {event.foodDetails.description}</p>
+                             <p><strong>⏳ Safe for:</strong> {event.foodDetails.safeForHours} hours</p>
+                             <p><strong>📍 Pickup Location:</strong> {event.foodDetails.pickupLocation}</p>
+                             <p className="text-xs text-gray-500">Logged at: {new Date(event.foodDetails.loggedAt).toLocaleString()}</p>
 
-                            {!event.foodDetails.claimed ? (
-                              <Button
-                                className="mt-2 bg-green-600 hover:bg-green-700"
-                                onClick={() => handleClaimSurplus(event._id)}
-                                disabled={claimingItemId === event._id}
-                              >
-                                {claimingItemId === event._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim Food"}
-                              </Button>
-                            ) : (
-                              <p className="mt-2 text-green-600 font-medium">✔ Already Claimed</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-yellow-700 text-sm">No detailed food log available.</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
+                             {!event.foodDetails.claimed ? (
+                               <Button
+                                 className="mt-2 bg-green-600 hover:bg-green-700"
+                                 onClick={() => handleClaimSurplus(event._id)}
+                                 disabled={claimingItemId === event._id}
+                               >
+                                 {claimingItemId === event._id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim Food"}
+                               </Button>
+                             ) : (
+                               <p className="mt-2 text-green-600 font-medium">✔ Already Claimed</p>
+                             )}
+                           </div>
+                         ) : (
+                           <p className="text-yellow-700 text-sm">No detailed food log available.</p>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </CardContent>
             </Card>
           </TabsContent>
 
