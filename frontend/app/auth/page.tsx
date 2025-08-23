@@ -122,7 +122,7 @@ export default function AuthPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Welcome Back</CardTitle>
-                <CardDescription>Sign in to your ZeroWaste account</CardDescription>
+                <CardDescription>Sign in to your BhojanSeva account</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignIn} className="space-y-4">
@@ -152,7 +152,7 @@ export default function AuthPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Create Account</CardTitle>
-                <CardDescription>Join the ZeroWaste community</CardDescription>
+                <CardDescription>Join the BhojanSeva community</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignUp} className="space-y-4">

@@ -239,90 +239,121 @@ export function EventIntegration() {
   };
 
   return (
-    <div className="event-grid">
-      <div className="event-list">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Campus Events</CardTitle>
-            <CardDescription>A list of upcoming events on campus.</CardDescription>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Event List */}
+      <div className="space-y-6">
+        <Card className="shadow-md rounded-2xl border border-gray-200">
+          <CardHeader className="bg-gray-50 rounded-t-2xl">
+            <CardTitle className="text-lg font-bold text-gray-800">Campus Events</CardTitle>
+            <CardDescription>Track upcoming and completed events.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             {events.length > 0 ? (
-              events.map((event) => (
-                <EventCard key={event._id} event={event} onFoodLogged={fetchEvents} />
-              ))
+              <div className="space-y-4">
+                {events.map((event) => (
+                  <EventCard key={event._id} event={event} onFoodLogged={fetchEvents} />
+                ))}
+              </div>
             ) : (
-              <p className="empty-text">No upcoming events.</p>
+              <p className="text-gray-500 text-sm text-center py-4">No events yet.</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <div className="event-form">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Event</CardTitle>
-            <CardDescription>Create a new event to track.</CardDescription>
+      {/* Event Form */}
+      <div>
+        <Card className="shadow-md rounded-2xl border border-gray-200">
+          <CardHeader className="bg-green-50 rounded-t-2xl">
+            <CardTitle className="text-lg font-bold text-green-800">Add New Event</CardTitle>
+            <CardDescription className="text-green-600">
+              Create and track a new event easily.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateEvent} className="space-y-4">
+          <CardContent className="p-6">
+            <form onSubmit={handleCreateEvent} className="space-y-5">
               <div>
-                <Label htmlFor="eventName">Event Name</Label>
+                <Label htmlFor="eventName" className="text-gray-700 font-medium">
+                  Event Name
+                </Label>
                 <Input
                   id="eventName"
                   value={newEventName}
                   onChange={(e) => setNewEventName(e.target.value)}
                   placeholder="e.g., Tech Conference"
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="eventDate">Date & Time</Label>
+                <Label htmlFor="eventDate" className="text-gray-700 font-medium">
+                  Date & Time
+                </Label>
                 <Input
                   id="eventDate"
                   type="datetime-local"
                   value={newEventDate}
                   onChange={(e) => setNewEventDate(e.target.value)}
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Duration</Label>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={durationHours}
-                    onChange={(e) => setDurationHours(Number(e.target.value))}
-                    placeholder="Hours"
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    value={durationMinutes}
-                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                    placeholder="Minutes"
-                  />
-                  <Input
-                    type="number"
-                    min="0"
-                    value={durationSeconds}
-                    onChange={(e) => setDurationSeconds(Number(e.target.value))}
-                    placeholder="Seconds"
-                  />
-                </div>
-              </div>
+  <Label className="text-gray-700 font-medium">Duration</Label>
+  <div className="flex gap-2 mt-1">
+    <div className="flex flex-col w-1/3">
+      <Input
+        type="number"
+        min="0"
+        value={durationHours}
+        onChange={(e) => setDurationHours(Number(e.target.value))}
+        placeholder="0"
+        className="text-center"
+      />
+      <span className="text-xs text-gray-500 mt-1 text-center">Hours</span>
+    </div>
+    <div className="flex flex-col w-1/3">
+      <Input
+        type="number"
+        min="0"
+        value={durationMinutes}
+        onChange={(e) => setDurationMinutes(Number(e.target.value))}
+        placeholder="0"
+        className="text-center"
+      />
+      <span className="text-xs text-gray-500 mt-1 text-center">Minutes</span>
+    </div>
+    <div className="flex flex-col w-1/3">
+      <Input
+        type="number"
+        min="0"
+        value={durationSeconds}
+        onChange={(e) => setDurationSeconds(Number(e.target.value))}
+        placeholder="0"
+        className="text-center"
+      />
+      <span className="text-xs text-gray-500 mt-1 text-center">Seconds</span>
+    </div>
+  </div>
+</div>
+
               <div>
-                <Label htmlFor="eventLocation">Location</Label>
+                <Label htmlFor="eventLocation" className="text-gray-700 font-medium">
+                  Location
+                </Label>
                 <Input
                   id="eventLocation"
                   value={newEventLocation}
                   onChange={(e) => setNewEventLocation(e.target.value)}
                   placeholder="e.g., Main Auditorium"
                   required
+                  className="mt-1"
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm transition"
+              >
                 Create Event
               </Button>
             </form>
