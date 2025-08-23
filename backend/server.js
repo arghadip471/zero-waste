@@ -77,37 +77,11 @@ io.on("connection", (socket) => {
   });
 });
 
-// Port selection and server start
-const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-const MAX_RETRIES = 5;
-
-function startServer(port, attempt = 0) {
-  const server = app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-  });
-
-  server.on("error", (err) => {
-    if (err && err.code === "EADDRINUSE") {
-      if (attempt < MAX_RETRIES) {
-        const nextPort = port + 1;
-        console.warn(
-          `Port ${port} in use. Attempting to start server on port ${nextPort} (attempt ${attempt +
-            1}/${MAX_RETRIES})...`
-        );
-        server.close?.();
-        setTimeout(() => startServer(nextPort, attempt + 1), 500);
-      } else {
-        console.error(
-          `Failed to start server: port ${port} (and subsequent ${MAX_RETRIES} ports) are in use.`
-        );
-        process.exit(1);
-      }
-    } else {
-      console.error("Server error:", err);
-      process.exit(1);
-    }
-  });
-}
-
-// Start trying from DEFAULT_PORT
-startServer(DEFAULT_PORT);
+// Start server with HTTP + WebSocket
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log("======================================");
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log("✅ Socket.io server is running");
+  console.log("======================================");
+});

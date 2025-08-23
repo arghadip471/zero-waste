@@ -214,6 +214,76 @@ export default function CanteenDashboard() {
     }
   }
 
+  function ChatBot() {
+    const [open, setOpen] = useState(false)
+    const [input, setInput] = useState("")
+    const [messages, setMessages] = useState<{ from: "user" | "bot"; text: string }[]>([])
+    const [typing, setTyping] = useState(false)
+
+    const sendMessage = () => {
+      const text = input.trim()
+      if (!text) return
+      setMessages((m) => [...m, { from: "user", text }])
+      setInput("")
+      setTyping(true)
+      // simulated AI reply
+      setTimeout(() => {
+        setMessages((m) => [...m, { from: "bot", text: `AI: Echo — "${text}". Ask about safety or claiming.` }])
+        setTyping(false)
+      }, 800)
+    }
+
+    const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") sendMessage()
+    }
+
+    return (
+      <>
+        {/* Floating Chat Button */}
+        <div className="fixed right-6 bottom-6 z-50">
+          {open && (
+            <div className="w-80 md:w-96 mb-3 rounded-lg shadow-lg border border-yellow-300 bg-white overflow-hidden">
+              <div className="flex items-center justify-between bg-yellow-600 text-white px-3 py-2">
+                <div className="font-medium">Bhojan AI</div>
+                <button onClick={() => setOpen(false)} className="text-white text-sm">Close</button>
+              </div>
+              <div className="p-3 max-h-64 overflow-y-auto space-y-2">
+                {messages.length === 0 && <div className="text-sm text-gray-500">Ask about listing, claiming, or food safety.</div>}
+                {messages.map((m, i) => (
+                  <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`${m.from === "user" ? "bg-yellow-700 text-white" : "bg-gray-100 text-gray-800"} px-3 py-2 rounded-lg max-w-[80%] text-sm`}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))}
+                {typing && <div className="text-sm text-gray-500">AI is typing...</div>}
+              </div>
+              <div className="p-2 border-t border-gray-200 flex gap-2">
+                <input
+                  className="flex-1 px-2 py-1 border rounded-md text-sm"
+                  placeholder="Type a message..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                />
+                <button onClick={sendMessage} className="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded-md text-sm">
+                  Send
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-600 text-white shadow-lg hover:bg-yellow-700"
+          >
+            <span className="font-medium">Chat AI</span>
+          </button>
+        </div>
+      </>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-yellow-50">
       {/* Header */}
@@ -475,14 +545,7 @@ export default function CanteenDashboard() {
                           <span>⏱ {formatHours(elapsedHours)}</span>
                         </div>
 
-                        {/* Claim Item button inside food listing */}
-                        <Button
-                          onClick={() => handleClaimItem(item.id)}
-                          className="bg-yellow-700 hover:bg-yellow-800 ml-4 text-white"
-                          disabled={claimingItemId === item.id}
-                        >
-                          {claimingItemId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim Item"}
-                        </Button>
+                        
                       </div>
                     )
                   })}
@@ -543,6 +606,8 @@ export default function CanteenDashboard() {
              )}
            </TabsContent>
         </Tabs>
+
+        <ChatBot />
       </div>
     </div>
   )
