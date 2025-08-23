@@ -17,53 +17,50 @@ export default function AuthPage() {
   const [selectedRole, setSelectedRole] = useState("")
   const router = useRouter()
 
-  const API_BASE ="http://localhost:5000/api/auth"
+  const API_BASE = "http://localhost:5000/api/auth"
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
 
-  const formData = new FormData(e.currentTarget);
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+    const formData = new FormData(e.currentTarget)
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
 
-  try {
-    const res = await fetch(`${API_BASE}/signin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-    const data = await res.json();
+      const data = await res.json()
 
-    if (!res.ok) throw new Error(data.message || "Sign in failed");
+      if (!res.ok) throw new Error(data.message || "Sign in failed")
 
-    // Save token
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", data.user.id);
-    localStorage.setItem("username", data.user.name);
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", data.user.id)
+      localStorage.setItem("username", data.user.name)
 
-    // Redirect based on role from backend
-    switch (data.user.role) {
-      case "admin":
-        router.push("/dashboard/admin");
-        break;
-      case "canteen":
-        router.push("/dashboard/canteen");
-        break;
-      case "ngo":
-        router.push("/dashboard/ngo");
-        break;
-      default:
-        alert("Unknown role, please contact support");
+      switch (data.user.role) {
+        case "admin":
+          router.push("/dashboard/admin")
+          break
+        case "canteen":
+          router.push("/dashboard/canteen")
+          break
+        case "ngo":
+          router.push("/dashboard/ngo")
+          break
+        default:
+          alert("Unknown role, please contact support")
+      }
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setIsLoading(false)
     }
-  } catch (err: any) {
-    alert(err.message);
-  } finally {
-    setIsLoading(false);
   }
-};
-
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -86,11 +83,10 @@ export default function AuthPage() {
 
       if (!res.ok) throw new Error(data.message || "Sign up failed")
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", data.user.id);
-      localStorage.setItem("username", data.user.name);
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", data.user.id)
+      localStorage.setItem("username", data.user.name)
 
-      // Redirect based on role
       if (role === "admin") router.push("/dashboard/admin")
       else if (role === "canteen") router.push("/dashboard/canteen")
       else router.push("/dashboard/ngo")
@@ -102,45 +98,47 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      style={{ backgroundImage: "url('/img.png')" }} // make sure img.png is inside /public
+    >
+      <div className="w-full max-w-md bg-yellow-100/90 rounded-2xl shadow-xl p-6">
+        {/* Header */}
         <div className="flex items-center justify-center mb-8">
-          <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
+          <Link href="/" className="flex items-center gap-2 text-yellow-900 hover:text-yellow-700">
             <ArrowLeft className="h-4 w-4" />
             <Leaf className="h-8 w-8" />
-            <span className="text-2xl font-bold">BhojanSeva</span>
+            <span className="text-3xl font-extrabold tracking-wide">BhojanSeva</span>
           </Link>
         </div>
 
+        {/* Tabs */}
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 bg-yellow-200 text-yellow-900">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
+          {/* Sign In */}
           <TabsContent value="signin">
-            <Card>
+            <Card className="bg-yellow-50 shadow-md">
               <CardHeader>
-                <CardTitle>Welcome Back</CardTitle>
-                <CardDescription>Sign in to your BhojanSeva account</CardDescription>
+                <CardTitle className="text-yellow-900">Welcome Back</CardTitle>
+                <CardDescription className="text-yellow-700">
+                  Sign in to your BhojanSeva account
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input id="signin-email" name="email" type="email" placeholder="Enter your email" required />
+                    <Label htmlFor="signin-email" className="text-yellow-900">Email</Label>
+                    <Input id="signin-email" name="email" type="email" placeholder="Enter your email" required className="border-yellow-400 focus:ring-yellow-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      name="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      required
-                    />
+                    <Label htmlFor="signin-password" className="text-yellow-900">Password</Label>
+                    <Input id="signin-password" name="password" type="password" placeholder="Enter your password" required className="border-yellow-400 focus:ring-yellow-500" />
                   </div>
-                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-yellow-600 hover:bg-yellow-700 text-white" disabled={isLoading}>
                     {isLoading ? "Signing In..." : "Sign In"}
                   </Button>
                 </form>
@@ -148,50 +146,41 @@ export default function AuthPage() {
             </Card>
           </TabsContent>
 
+          {/* Sign Up */}
           <TabsContent value="signup">
-            <Card>
+            <Card className="bg-yellow-50 shadow-md">
               <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>Join the BhojanSeva community</CardDescription>
+                <CardTitle className="text-yellow-900">Create Account</CardTitle>
+                <CardDescription className="text-yellow-700">Join the BhojanSeva community</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input id="signup-name" name="name" placeholder="Enter your full name" required />
+                    <Label htmlFor="signup-name" className="text-yellow-900">Full Name</Label>
+                    <Input id="signup-name" name="name" placeholder="Enter your full name" required className="border-yellow-400 focus:ring-yellow-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input id="signup-email" name="email" type="email" placeholder="Enter your email" required />
+                    <Label htmlFor="signup-email" className="text-yellow-900">Email</Label>
+                    <Input id="signup-email" name="email" type="email" placeholder="Enter your email" required className="border-yellow-400 focus:ring-yellow-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      placeholder="Create a password"
-                      required
-                    />
+                    <Label htmlFor="signup-password" className="text-yellow-900">Password</Label>
+                    <Input id="signup-password" name="password" type="password" placeholder="Create a password" required className="border-yellow-400 focus:ring-yellow-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="role">Select Your Role</Label>
+                    <Label htmlFor="role" className="text-yellow-900">Select Your Role</Label>
                     <Select value={selectedRole} onValueChange={setSelectedRole} required>
-                      <SelectTrigger>
+                      <SelectTrigger className="border-yellow-400 focus:ring-yellow-500">
                         <SelectValue placeholder="Choose your role" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-yellow-50">
                         <SelectItem value="canteen">Canteen Staff</SelectItem>
                         <SelectItem value="ngo">NGO/Student</SelectItem>
                         <SelectItem value="admin">Administrator</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700"
-                    disabled={isLoading || !selectedRole}
-                  >
+                  <Button type="submit" className="w-full bg-yellow-600 hover:bg-yellow-700 text-white" disabled={isLoading || !selectedRole}>
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
