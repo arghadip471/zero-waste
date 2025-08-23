@@ -33,100 +33,98 @@ interface AnalyticsData {
   }>
 }
 
-export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
-
-  if(!stats) {
+export function AnalyticsDashboard({ stats }: { stats: AnalyticsData | null }) {
+  if (!stats) {
     return (
-      <Card>
+      <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
-          <CardTitle>Loading Analytics...</CardTitle>
+          <CardTitle className="text-yellow-800">Loading Analytics...</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center">
-          <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
+          <Loader2 className="animate-spin h-6 w-6 text-yellow-600" />
         </CardContent>
       </Card>
     )
   }
 
-  console.log("Analytics Data:", stats)
-
   return (
     <div className="space-y-6">
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Food Saved */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Food Saved</CardTitle>
-            <Utensils className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">Food Saved</CardTitle>
+            <Utensils className="h-4 w-4 text-yellow-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.foodSaved.total.toLocaleString()} kg</div>
+            <div className="text-2xl font-bold text-yellow-800">{stats.foodSaved.total.toLocaleString()} kg</div>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Badge variant="secondary" className="bg-yellow-200 text-yellow-900">
                 +{stats.foodSaved.trend}%
               </Badge>
-              <p className="text-xs text-muted-foreground">vs last month</p>
+              <p className="text-xs text-yellow-700">vs last month</p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.foodSaved.thisMonth} kg this month</p>
+            <p className="text-xs text-yellow-700 mt-1">{stats.foodSaved.thisMonth} kg this month</p>
           </CardContent>
         </Card>
 
         {/* Carbon Footprint */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CO₂ Saved</CardTitle>
-            <Leaf className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">CO₂ Saved</CardTitle>
+            <Leaf className="h-4 w-4 text-yellow-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.carbonSaved.totalKg} kg</div>
-            <p className="text-xs text-muted-foreground mt-1">Equivalent to {stats.carbonSaved.carsOffStreetTotal} cars of the street</p>
+            <div className="text-2xl font-bold text-yellow-800">{stats.carbonSaved.totalKg} kg</div>
+            <p className="text-xs text-yellow-700 mt-1">
+              Equivalent to {stats.carbonSaved.carsOffStreetTotal} cars off the street
+            </p>
           </CardContent>
         </Card>
 
         {/* Water Footprint */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Water Saved</CardTitle>
-            <Droplets className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">Water Saved</CardTitle>
+            <Droplets className="h-4 w-4 text-yellow-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.waterSaved.totalLiters.toLocaleString()} L</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.waterSaved.totalBuckets} buckets of water</p>
+            <div className="text-2xl font-bold text-yellow-800">{stats.waterSaved.totalLiters.toLocaleString()} L</div>
+            <p className="text-xs text-yellow-700 mt-1">{stats.waterSaved.totalBuckets} buckets of water</p>
           </CardContent>
         </Card>
 
         {/* People Served */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">People Served</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-900">People Served</CardTitle>
+            <Users className="h-4 w-4 text-yellow-700" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.peopleServed.total.toLocaleString()}</div>
-            
+            <div className="text-2xl font-bold text-yellow-800">{stats.peopleServed.total.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Waste Reduction Goal */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-yellow-900">
+              <Target className="h-5 w-5 text-yellow-700" />
               Waste Reduction Goal
             </CardTitle>
-            <CardDescription>Progress towards monthly target</CardDescription>
+            <CardDescription className="text-yellow-700">Progress towards monthly target</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Current: {stats.wasteReduction.percentage}%</span>
-              <span className="text-sm text-muted-foreground">Target: {stats.wasteReduction.target}%</span>
+              <span className="text-sm font-medium text-yellow-900">Current: {stats.wasteReduction.percentage}%</span>
+              <span className="text-sm text-yellow-700">Target: {stats.wasteReduction.target}%</span>
             </div>
-            <Progress value={stats.wasteReduction.percentage} className="h-3" />
+            <Progress value={stats.wasteReduction.percentage} className="h-3 bg-yellow-100 [&>div]:bg-yellow-500" />
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-green-600">
+              <TrendingUp className="h-4 w-4 text-yellow-700" />
+              <span className="text-sm text-yellow-700">
                 {stats.wasteReduction.target - stats.wasteReduction.percentage}% to reach target
               </span>
             </div>
@@ -134,24 +132,24 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
         </Card>
 
         {/* Top Food Categories */}
-        <Card>
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-yellow-900">
+              <Award className="h-5 w-5 text-yellow-700" />
               Top Food Categories
             </CardTitle>
-            <CardDescription>Most redistributed food types</CardDescription>
+            <CardDescription className="text-yellow-700">Most redistributed food types</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {stats.categories.map((category, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{category.category}</span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm font-medium text-yellow-900">{category.category}</span>
+                  <span className="text-sm text-yellow-700">
                     {category.totalKg} kg ({category.percentage}%)
                   </span>
                 </div>
-                <Progress value={category.percentage} className="h-2" />
+                <Progress value={category.percentage} className="h-2 bg-yellow-100 [&>div]:bg-yellow-500" />
               </div>
             ))}
           </CardContent>
@@ -159,30 +157,30 @@ export function AnalyticsDashboard({stats}: {stats: AnalyticsData | null}) {
       </div>
 
       {/* Environmental Impact Summary */}
-      <Card>
+      <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Leaf className="h-5 w-5 text-green-600" />
+          <CardTitle className="flex items-center gap-2 text-yellow-900">
+            <Leaf className="h-5 w-5 text-yellow-700" />
             Environmental Impact Summary
           </CardTitle>
-          <CardDescription>Your contribution to sustainability</CardDescription>
+          <CardDescription className="text-yellow-700">Your contribution to sustainability</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 mb-2">🌱</div>
-              <div className="text-lg font-semibold">Carbon Neutral</div>
-              <div className="text-sm text-gray-600">Equivalent to planting 45 trees</div>
+            <div className="text-center p-4 bg-yellow-100 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-700 mb-2">🌱</div>
+              <div className="text-lg font-semibold text-yellow-900">Carbon Neutral</div>
+              <div className="text-sm text-yellow-800">Equivalent to planting 45 trees</div>
             </div>
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 mb-2">💧</div>
-              <div className="text-lg font-semibold">Water Conservation</div>
-              <div className="text-sm text-gray-600">Saved enough water for 156 people/day</div>
+            <div className="text-center p-4 bg-yellow-100 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-700 mb-2">💧</div>
+              <div className="text-lg font-semibold text-yellow-900">Water Conservation</div>
+              <div className="text-sm text-yellow-800">Saved enough water for 156 people/day</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 mb-2">🏆</div>
-              <div className="text-lg font-semibold">Community Impact</div>
-              <div className="text-sm text-gray-600">Fed 1,890 people this year</div>
+            <div className="text-center p-4 bg-yellow-100 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-700 mb-2">🏆</div>
+              <div className="text-lg font-semibold text-yellow-900">Community Impact</div>
+              <div className="text-sm text-yellow-800">Fed 1,890 people this year</div>
             </div>
           </div>
         </CardContent>

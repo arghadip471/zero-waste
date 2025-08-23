@@ -40,76 +40,117 @@ const EventCard = ({ event, onFoodLogged }: { event: Event; onFoodLogged: () => 
   const [safeForHours, setSafeForHours] = useState(0);
   const [pickupLocation, setPickupLocation] = useState("");
 
-  let statusColor = "#6b7280";
-  if (event.status === "Upcoming") statusColor = "#3b82f6";
-  if (event.status === "Ongoing") statusColor = "#22c55e";
-  if (event.status === "Completed") statusColor = "#ef4444";
+  // 🎨 Warm status colors
+  let statusColor = "#CA8A04"; // amber default
+  if (event.status === "Upcoming") statusColor = "#F59E0B"; // amber
+  if (event.status === "Ongoing") statusColor = "#EA580C"; // orange
+  if (event.status === "Completed") statusColor = "#B91C1C"; // red
 
   const hrs = event.durationHours || 0;
   const mins = event.durationMinutes || 0;
   const secs = event.durationSeconds || 0;
 
-const handleLogFood = async () => {
-  try {
-    const res = await fetch(`http://localhost:5000/api/events/event_log_food/${event._id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        foodType,
-        quantity,
-        description,
-        safeForHours,
-        pickupLocation
-      })
-    });
+  // ✅ Log food
+  const handleLogFood = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/events/event_log_food/${event._id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          foodType,
+          quantity,
+          description,
+          safeForHours,
+          pickupLocation,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.msg || "Failed to log food");  // show backend error
-      return;
+      if (!res.ok) {
+        alert(data.msg || "Failed to log food");
+        return;
+      }
+
+      console.log("Food logged:", data);
+
+      setShowFoodForm(false);
+      setFoodType("");
+      setQuantity("");
+      setDescription("");
+      setSafeForHours(0);
+      setPickupLocation("");
+
+      onFoodLogged(); // refresh
+    } catch (err) {
+      console.error("Error logging food:", err);
+      alert("Something went wrong while logging food");
     }
+  };
 
-    console.log("Food logged:", data);
+  // ✅ Delete event
+  const handleDeleteEvent = async () => {
+    if (!confirm(`Are you sure you want to delete "${event.name}"?`)) return;
 
-    // reset form only on success
-    setShowFoodForm(false);
-    setFoodType("");
-    setQuantity("");
-    setDescription("");
-    setSafeForHours(0);
-    setPickupLocation("");
+    try {
+      const res = await fetch(`http://localhost:5000/api/events/${event._id}`, {
+        method: "DELETE",
+      });
 
-    onFoodLogged(); // refresh events
-  } catch (err) {
-    console.error("Error logging food:", err);
-    alert("Something went wrong while logging food");
-  }
-};
+      const data = await res.json();
 
+      if (!res.ok) {
+        alert(data.msg || "Failed to delete event");
+        return;
+      }
+
+      console.log("Deleted:", data);
+      onFoodLogged(); // refresh events
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      alert("Something went wrong while deleting");
+    }
+  };
 
   return (
     <div className="event-item">
-      <div className="event-header">
-        <h4 className="event-title">{event.name}</h4>
-        <span className="status-badge" style={{ backgroundColor: statusColor }}>
-          {event.status}
-        </span>
+      <div className="event-header flex justify-between items-center">
+        <h4 className="event-title font-semibold text-amber-800">{event.name}</h4>
+        <div className="flex items-center gap-2">
+          <span
+            className="status-badge"
+            style={{ backgroundColor: statusColor }}
+          >
+            {event.status}
+          </span>
+          <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={handleDeleteEvent}>
+            Delete
+          </Button>
+        </div>
       </div>
-      <p className="event-date">
+      <p className="event-date text-amber-700">
         {new Date(event.date).toLocaleString()} — {hrs}h {mins}m {secs}s
       </p>
-      <p className="event-location">{event.location}</p>
+      <p className="event-location text-orange-700">{event.location}</p>
 
       {event.status === "Completed" && !event.foodLogged && (
         <div style={{ marginTop: "0.75rem" }}>
           {!showFoodForm ? (
-            <Button size="sm" onClick={() => setShowFoodForm(true)}>
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setShowFoodForm(true)}>
               Log Food
             </Button>
           ) : (
-            <div style={{ border: "1px solid #e5e7eb", padding: "1rem", borderRadius: "0.5rem" }}>
-              <h4 className="mb-2 font-semibold">Log Surplus Food from {event.name}</h4>
+            <div
+              style={{
+                border: "1px solid #FCD34D",
+                padding: "1rem",
+                borderRadius: "0.5rem",
+                background: "#FFFBEB",
+              }}
+            >
+              <h4 className="mb-2 font-semibold text-amber-800">
+                Log Surplus Food from {event.name}
+              </h4>
 
               <div style={{ display: "grid", gap: "0.5rem" }}>
                 <Input
@@ -126,7 +167,12 @@ const handleLogFood = async () => {
                   placeholder="Brief description of the food items"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  style={{ padding: "0.5rem", border: "1px solid #d1d5db", borderRadius: "0.25rem" }}
+                  style={{
+                    padding: "0.5rem",
+                    border: "1px solid #FCD34D",
+                    borderRadius: "0.25rem",
+                    background: "#FEF3C7",
+                  }}
                 />
                 <Input
                   placeholder="Safe for (hours)"
@@ -141,11 +187,16 @@ const handleLogFood = async () => {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-                <Button size="sm" onClick={handleLogFood}>
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white" onClick={handleLogFood}>
                   Log Food Items
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => setShowFoodForm(false)}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="bg-gray-200 text-amber-800 hover:bg-gray-300"
+                  onClick={() => setShowFoodForm(false)}
+                >
                   Cancel
                 </Button>
               </div>
@@ -156,24 +207,22 @@ const handleLogFood = async () => {
 
       {event.foodLogged && event.foodDetails && (
         <div style={{ marginTop: "0.5rem", color: "#16a34a" }}>
-          🍽 Food Logged: {event.foodDetails.quantity} of {event.foodDetails.foodType}  
+          🍽 Food Logged: {event.foodDetails.quantity} of{" "}
+          {event.foodDetails.foodType}
           <br />
-          📍 {event.foodDetails.pickupLocation} — Safe for {event.foodDetails.safeForHours} hours
+          📍 {event.foodDetails.pickupLocation} — Safe for{" "}
+          {event.foodDetails.safeForHours} hours
         </div>
       )}
 
       <style jsx>{`
         .event-item {
-          background: #fff;
-          border: 1px solid #e5e7eb;
+          background: #FFFBEB;
+          border: 1px solid #FCD34D;
           border-radius: 0.5rem;
           padding: 1rem;
           margin-bottom: 1rem;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .event-header {
-          display: flex;
-          justify-content: space-between;
+          box-shadow: 0 2px 4px rgba(120, 53, 15, 0.1);
         }
         .status-badge {
           color: white;
@@ -242,10 +291,10 @@ export function EventIntegration() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Event List */}
       <div className="space-y-6">
-        <Card className="shadow-md rounded-2xl border border-gray-200">
-          <CardHeader className="bg-gray-50 rounded-t-2xl">
-            <CardTitle className="text-lg font-bold text-gray-800">Campus Events</CardTitle>
-            <CardDescription>Track upcoming and completed events.</CardDescription>
+        <Card className="shadow-md rounded-2xl border border-amber-300 bg-yellow-50">
+          <CardHeader className="bg-amber-100 rounded-t-2xl">
+            <CardTitle className="text-lg font-bold text-amber-800">Campus Events</CardTitle>
+            <CardDescription className="text-amber-700">Track upcoming and completed events.</CardDescription>
           </CardHeader>
           <CardContent className="p-4">
             {events.length > 0 ? (
@@ -255,7 +304,7 @@ export function EventIntegration() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm text-center py-4">No events yet.</p>
+              <p className="text-amber-600 text-sm text-center py-4">No events yet.</p>
             )}
           </CardContent>
         </Card>
@@ -263,17 +312,17 @@ export function EventIntegration() {
 
       {/* Event Form */}
       <div>
-        <Card className="shadow-md rounded-2xl border border-gray-200">
-          <CardHeader className="bg-green-50 rounded-t-2xl">
-            <CardTitle className="text-lg font-bold text-green-800">Add New Event</CardTitle>
-            <CardDescription className="text-green-600">
+        <Card className="shadow-md rounded-2xl border border-amber-300 bg-yellow-50">
+          <CardHeader className="bg-orange-100 rounded-t-2xl">
+            <CardTitle className="text-lg font-bold text-orange-800">Add New Event</CardTitle>
+            <CardDescription className="text-orange-700">
               Create and track a new event easily.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleCreateEvent} className="space-y-5">
               <div>
-                <Label htmlFor="eventName" className="text-gray-700 font-medium">
+                <Label htmlFor="eventName" className="text-amber-800 font-medium">
                   Event Name
                 </Label>
                 <Input
@@ -286,7 +335,7 @@ export function EventIntegration() {
                 />
               </div>
               <div>
-                <Label htmlFor="eventDate" className="text-gray-700 font-medium">
+                <Label htmlFor="eventDate" className="text-amber-800 font-medium">
                   Date & Time
                 </Label>
                 <Input
@@ -298,47 +347,49 @@ export function EventIntegration() {
                   className="mt-1"
                 />
               </div>
+
+              {/* Duration */}
               <div>
-  <Label className="text-gray-700 font-medium">Duration</Label>
-  <div className="flex gap-2 mt-1">
-    <div className="flex flex-col w-1/3">
-      <Input
-        type="number"
-        min="0"
-        value={durationHours}
-        onChange={(e) => setDurationHours(Number(e.target.value))}
-        placeholder="0"
-        className="text-center"
-      />
-      <span className="text-xs text-gray-500 mt-1 text-center">Hours</span>
-    </div>
-    <div className="flex flex-col w-1/3">
-      <Input
-        type="number"
-        min="0"
-        value={durationMinutes}
-        onChange={(e) => setDurationMinutes(Number(e.target.value))}
-        placeholder="0"
-        className="text-center"
-      />
-      <span className="text-xs text-gray-500 mt-1 text-center">Minutes</span>
-    </div>
-    <div className="flex flex-col w-1/3">
-      <Input
-        type="number"
-        min="0"
-        value={durationSeconds}
-        onChange={(e) => setDurationSeconds(Number(e.target.value))}
-        placeholder="0"
-        className="text-center"
-      />
-      <span className="text-xs text-gray-500 mt-1 text-center">Seconds</span>
-    </div>
-  </div>
-</div>
+                <Label className="text-amber-800 font-medium">Duration</Label>
+                <div className="flex gap-2 mt-1">
+                  <div className="flex flex-col w-1/3">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(Number(e.target.value))}
+                      placeholder="0"
+                      className="text-center"
+                    />
+                    <span className="text-xs text-amber-700 mt-1 text-center">Hours</span>
+                  </div>
+                  <div className="flex flex-col w-1/3">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                      placeholder="0"
+                      className="text-center"
+                    />
+                    <span className="text-xs text-amber-700 mt-1 text-center">Minutes</span>
+                  </div>
+                  <div className="flex flex-col w-1/3">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={durationSeconds}
+                      onChange={(e) => setDurationSeconds(Number(e.target.value))}
+                      placeholder="0"
+                      className="text-center"
+                    />
+                    <span className="text-xs text-amber-700 mt-1 text-center">Seconds</span>
+                  </div>
+                </div>
+              </div>
 
               <div>
-                <Label htmlFor="eventLocation" className="text-gray-700 font-medium">
+                <Label htmlFor="eventLocation" className="text-amber-800 font-medium">
                   Location
                 </Label>
                 <Input
@@ -352,7 +403,7 @@ export function EventIntegration() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-sm transition"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-lg shadow-sm transition"
               >
                 Create Event
               </Button>

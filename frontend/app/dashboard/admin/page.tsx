@@ -5,18 +5,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Leaf, LogOut, Loader2 } from "lucide-react"
+import { Leaf, LogOut, Loader2, User } from "lucide-react"
 import Link from "next/link"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { User } from "lucide-react"
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 
 import { NotificationSystem } from "@/components/notification-system"
 import { AnalyticsDashboard } from "@/components/analytics-dashboard"
 import { EventIntegration } from "@/components/event-integration"
 
 export default function AdminDashboard() {
-  const [username, setUsername] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null)
   const [stats, setStats] = useState<any>(null)
   const [recentActivity, setRecentActivity] = useState<Activity[]>([])
   const [loadingStats, setLoadingStats] = useState(true)
@@ -39,22 +44,22 @@ export default function AdminDashboard() {
   }, [])
 
   useEffect(() => {
-      const storedName = localStorage.getItem("username")
-      if (storedName) setUsername(storedName)
-  
-      const userId = localStorage.getItem("user")
-      if (userId) {
-        fetch(`http://localhost:5000/api/users/${userId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data?.name) {
-              setUsername(data.name)
-              localStorage.setItem("username", data.name)
-            }
-          })
-          .catch(err => console.error("Error fetching username:", err))
-      }
-    }, [])
+    const storedName = localStorage.getItem("username")
+    if (storedName) setUsername(storedName)
+
+    const userId = localStorage.getItem("user")
+    if (userId) {
+      fetch(`http://localhost:5000/api/users/${userId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.name) {
+            setUsername(data.name)
+            localStorage.setItem("username", data.name)
+          }
+        })
+        .catch((err) => console.error("Error fetching username:", err))
+    }
+  }, [])
 
   async function fetchStats() {
     try {
@@ -131,32 +136,30 @@ export default function AdminDashboard() {
   function getTypeBadge(type: Activity["type"]) {
     switch (type) {
       case "canteen":
-        return <Badge className="bg-blue-500">Canteen</Badge>
+        return <Badge className="bg-yellow-500 text-white">Canteen</Badge>
       case "claim":
-        return <Badge className="bg-green-500">Claimed</Badge>
+        return <Badge className="bg-orange-600 text-white">Claimed</Badge>
       case "student":
-        return <Badge className="bg-purple-500">Student</Badge>
+        return <Badge className="bg-red-500 text-white">Student</Badge>
       case "listing":
-        return <Badge className="bg-orange-500">Listed</Badge>
+        return <Badge className="bg-yellow-700 text-white">Listed</Badge>
       default:
-        return <Badge className="bg-gray-500">Other</Badge>
+        return <Badge className="bg-yellow-400 text-white">Other</Badge>
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-yellow-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-yellow-100 shadow-sm border-b border-yellow-300">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Link href="/" className="flex items-center gap-2 text-green-800 hover:text-green-600">
-              <Leaf className="h-8 w-8 text-green-600" />
-              <span className="text-2xl font-bold text-green-800">BhojanSeva</span>
+              <Link href="/" className="flex items-center gap-2 text-yellow-800 hover:text-yellow-700">
+                <Leaf className="h-8 w-8 text-yellow-600" />
+                <span className="text-2xl font-bold text-yellow-900">BhojanSeva</span>
               </Link>
-              <Badge variant="secondary" className="ml-2">
-                Administrator
-              </Badge>
+              <Badge className="ml-2 bg-yellow-600 text-white">Administrator</Badge>
             </div>
             <div className="flex items-center gap-4">
               <NotificationSystem />
@@ -164,18 +167,22 @@ export default function AdminDashboard() {
               {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 border-yellow-700 text-yellow-800 hover:bg-yellow-200"
+                  >
                     <User className="h-4 w-4" />
                     {username || "User"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-56 bg-yellow-50 border border-yellow-300">
+                  <DropdownMenuLabel className="text-yellow-800">
                     Signed in as {username || "User"}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <Link href="/auth">
-                    <DropdownMenuItem className="text-red-600 cursor-pointer">
+                    <DropdownMenuItem className="text-red-700 cursor-pointer hover:bg-red-100">
                       <LogOut className="h-4 w-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
@@ -189,14 +196,12 @@ export default function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Monitor platform activity and manage the BhojanSeva community
-          </p>
+          <h1 className="text-3xl font-bold text-yellow-900">Admin Dashboard</h1>
+          <p className="text-yellow-700 mt-2">Monitor platform activity and manage the BhojanSeva community</p>
         </div>
 
         {loadingStats ? (
-          <div className="flex items-center text-gray-500">
+          <div className="flex items-center text-yellow-700">
             <Loader2 className="animate-spin h-5 w-5 mr-2" />
             Loading stats...
           </div>
@@ -207,46 +212,48 @@ export default function AdminDashboard() {
         )}
 
         <Tabs defaultValue="activity" className="space-y-6 mt-6">
-          <TabsList>
+          <TabsList className="bg-yellow-200 text-yellow-900">
             <TabsTrigger value="activity">Recent Activity</TabsTrigger>
             <TabsTrigger value="events">Event Management</TabsTrigger>
           </TabsList>
 
           <TabsContent value="activity">
-            <Card>
+            <Card className="border-yellow-300 bg-yellow-50">
               <CardHeader>
-                <CardTitle>Recent Platform Activity</CardTitle>
-                <CardDescription>Latest food item actions from the platform</CardDescription>
+                <CardTitle className="text-yellow-900">Recent Platform Activity</CardTitle>
+                <CardDescription className="text-yellow-700">
+                  Latest food item actions from the platform
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingActivity ? (
-                  <div className="flex items-center text-gray-500">
+                  <div className="flex items-center text-yellow-700">
                     <Loader2 className="animate-spin h-5 w-5 mr-2" />
                     Loading recent activity...
                   </div>
                 ) : errorActivity ? (
                   <p className="text-red-500">{errorActivity}</p>
                 ) : recentActivity.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No recent activity found.</p>
+                  <p className="text-yellow-700 text-sm">No recent activity found.</p>
                 ) : (
                   <div className="space-y-4">
                     {recentActivity.map((activity) => (
                       <div
                         key={activity.id}
-                        className="flex items-center justify-between p-4 border rounded-lg bg-white hover:shadow-sm transition"
+                        className="flex items-center justify-between p-4 border border-yellow-300 rounded-lg bg-yellow-100 hover:shadow-sm transition"
                       >
                         <div className="flex items-center gap-3">
                           {getTypeBadge(activity.type)}
                           <div>
-                            <p className="font-medium">
+                            <p className="font-medium text-yellow-900">
                               {activity.action} —{" "}
-                              <span className="text-green-700">{activity.name}</span>
+                              <span className="text-orange-700">{activity.name}</span>
                             </p>
-                            <p className="text-sm text-gray-500">{activity.user}</p>
+                            <p className="text-sm text-yellow-700">{activity.user}</p>
                           </div>
                         </div>
                         <span
-                          className="text-sm text-gray-500"
+                          className="text-sm text-yellow-700"
                           title={new Date().toLocaleString()}
                         >
                           {activity.time}
